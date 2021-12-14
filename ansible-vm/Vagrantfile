@@ -1,17 +1,10 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
 
-# All Vagrant configuration is done below. The "2" in Vagrant.configure
-# configures the configuration version (we support older styles for
-# backwards compatibility). Please don't change it unless you know what
-# you're doing.
-Vagrant.configure("2") do |config|
-  # The most common configuration options are documented and commented below.
-  # For a complete reference, please see the online documentation at
-  # https://docs.vagrantup.com.
+ 
 
-  # Every Vagrant development environment requires a box. You can search for
-  # boxes at https://vagrantcloud.com/search.
+Vagrant.configure("2") do |config|
+ 
   config.vm.box = "ubuntu/trusty64" 
   config.vm.network "private_network", ip: "192.29.16.10" 
   config.vm.hostname ="ansible1.hspo.dk"
@@ -27,26 +20,24 @@ Vagrant.configure("2") do |config|
     
   end
 
-  config.vm.provision "shell", inline: <<-SHELL
-    sudo apt-get update
-    sudo apt-get install -y  dnsutils
-    sudo apt-get install -y curl
-    sudo apt-get install -y ansible
-    sudo apt-get install xauth
-    sudo sed -i 's/XKBLAYOUT=.*/XKBLAYOUT="dk"/g' /etc/default/keyboard
-    sudo useradd -m hspo
-    usermod -aG sudo hspo
-    sudo mkdir /home/hspo/.ssh
-    sudo chown -R hspo:hspo /home/hspo/.ssh
-    #sudo usermod --password 041275 hspo
-    SHELL
-  
-
   config.vm.provision "shell" do |s|
     ssh_pub_key = File.readlines("#{Dir.home}/.ssh/id_rsa.pub").first.strip
     s.inline = <<-SHELL
+      sudo apt-get update
+      sudo apt-get install -y  dnsutils
+      sudo apt-get install -y curl
+      sudo apt-add-repository ppa:ansible/ansible -y
+      sudo apt-get update
+      sudo apt-get install -y ansible
+      sudo apt-get install xauth
+      sudo sed -i 's/XKBLAYOUT=.*/XKBLAYOUT="dk"/g' /etc/default/keyboard
+      sudo useradd -m hspo
+      usermod -aG sudo hspo
+      sudo mkdir /home/hspo/.ssh
+      sudo chown -R hspo:hspo /home/hspo/.ssh
       echo #{ssh_pub_key} >> /home/hspo/.ssh/authorized_keys
       echo #{ssh_pub_key} >> /root/.ssh/authorized_keys
+      sudo echo "hspo ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers.d/hspo
     SHELL
   end
 
