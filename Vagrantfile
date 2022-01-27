@@ -1,66 +1,18 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
 
- 
-
+# All Vagrant configuration is done below. The "2" in Vagrant.configure
+# configures the configuration version (we support older styles for
+# backwards compatibility). Please don't change it unless you know what
+# you're doing.
 Vagrant.configure("2") do |config|
- 
-  config.vm.box = "generic/centos7" 
-  config.vm.network "private_network", ip: "192.29.16.10" 
-  config.vm.hostname ="ansible1.hspo.dk"
-  # Enable ssh forward agent
-  config.ssh.forward_agent = true
- 
-  
+  # The most common configuration options are documented and commented below.
+  # For a complete reference, please see the online documentation at
+  # https://docs.vagrantup.com.
 
-  config.vm.provider "virtualbox" do |vb|
-    vb.memory = 4096      # Memory size in M.
-    vb.cpus   = 2         # Number of vCPUs
-    vb.name   = "ansible1.hspo.dk"   # VM name.
-    
-  end
-
-  config.vm.provision "shell" do |s|
-    ssh_pub_key = File.readlines("#{Dir.home}/.ssh/id_rsa.pub").first.strip
-    s.inline = <<-SHELL
-      sudo yum update
-      sudo yum install -y  dnsutils
-      sudo yum install -y curl
-      sudo apt-add-repository ppa:ansible/ansible -y
-      sudo yum update
-      sudo yum install -y ansible
-      sudo yum install git -y  - nc
-      sudo yum install telnet -y
-      sudo yum install java-1.7.0-openjdk-headless -y
-
-
-      sudo useradd -m hspo
-      sudo mkdir /home/hspo/.ssh
-      sudo chown -R hspo:hspo /home/hspo/.ssh
-     
-      echo #{ssh_pub_key} >> /home/hspo/.ssh/authorized_keys
-      echo #{ssh_pub_key} >> /root/.ssh/authorized_keys
-      sudo echo "hspo ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers.d/hspo
-
-      sudo useradd -m ansible -p ansible
-      sudo mkdir /home/ansible/.ssh 
-      sudo chown -R ansible:ansible /home/ansible/.ssh
-      sudo echo "ansible ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers.d/ansible
-      sudo sed -i 's/PasswordAuthentication no/PasswordAuthentication yes/g' /etc/ssh/sshd_config
-      sudo systemctl restart sshd
-
-      
-      sudo ssh-keygen -f /home/ansible/.ssh/id_rsa -N ansible
-
-      sudo git config --global user.email "hspo5master@hotmail.com"
-      sudo git config --global user.name "henrikspitu"
-
-    SHELL
-  end
-
-
-  
-  
+  # Every Vagrant development environment requires a box. You can search for
+  # boxes at https://vagrantcloud.com/search.
+  config.vm.box = "base"
 
   # Disable automatic box update checking. If you disable this, then
   # boxes will only be checked for updates when the user runs
@@ -112,7 +64,7 @@ Vagrant.configure("2") do |config|
   # Ansible, Chef, Docker, Puppet and Salt are also available. Please see the
   # documentation for more information about their specific syntax and use.
   # config.vm.provision "shell", inline: <<-SHELL
-  #   yum update
-  #   yum install -y apache2
+  #   apt-get update
+  #   apt-get install -y apache2
   # SHELL
 end
