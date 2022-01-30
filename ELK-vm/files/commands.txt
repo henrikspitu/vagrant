@@ -1,4 +1,10 @@
 
+TO owerride default curl with our own:
+ stand in user home folder: source .profile
+
+ to see if it's correct type: which curl
+
+
 curl -XDELETE 127.0.0.1:9200/movies
 
 
@@ -106,3 +112,15 @@ curl -XGET 127.0.0.1:9200/movies/_search?pretty -d '
 Get file for script import of data
 wget http://files.grouplens.org/datasets/movielens/ml-latest-small.zip
 
+get python file wget  wget media.sundog-soft.com/es7/MoviesToJson.py
+
+
+import data using a API
+
+Install pip3 
+sudo apt install python3-pip (python install module)
+pip3 install elasticsearchwget 
+
+wget media.sundog-soft.com/es7/IndexRatings.py
+
+python3 IndexRatings.py
