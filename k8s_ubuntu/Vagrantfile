@@ -35,9 +35,10 @@ Vagrant.configure(2) do |config|
   # Kubernetes Worker Nodes
   (1..NodeCount).each do |i|
     config.vm.define "kworker#{i}" do |workernode|
+      ip_addr = "192.29.16.5#{i}"
       workernode.vm.box = "bento/ubuntu-18.04"
       workernode.vm.hostname = "kworker#{i}.example.com"
-      workernode.vm.network "private_network", ip: "192.29.16.5#{i}"
+      workernode.vm.network "private_network", ip: "#{ip_addr}"
       workernode.persistent_storage.enabled = true
       workernode.persistent_storage.location = "~/elk/worker#{i}hdd.vdi"
       workernode.persistent_storage.size = 10000
@@ -51,7 +52,8 @@ Vagrant.configure(2) do |config|
         v.cpus = 2
       end
       ssh_pub_key = File.readlines("#{Dir.home}/.ssh/id_rsa.pub").first.strip
-      workernode.vm.provision "shell", path: "bootstrap_kworker.sh" , :args => [ssh_pub_key]
+      
+      workernode.vm.provision "shell", path: "bootstrap_kworker.sh" , :args => [ssh_pub_key, ip_addr]
     end
   end
 
