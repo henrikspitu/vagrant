@@ -31,20 +31,20 @@ sudo cat <<EOT >> /etc/docker/daemon.json
 }
 EOT
 
-echo "[TASK 3] add server IP to kubelet $2"
-sudo sed -i 's/.*\/usr\/bin\/kubelet.*/ExecStart=\/usr\/bin\/kubelet --node-ip='"$2"' $KUBELET_KUBECONFIG_ARGS $KUBELET_CONFIG_ARGS $KUBELET_KUBEADM_ARGS $KUBELET_EXTRA_ARGS/g' /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
+#echo "[TASK 3] add server IP to kubelet $2"
+#sudo sed -i 's/.*\/usr\/bin\/kubelet.*/ExecStart=\/usr\/bin\/kubelet --node-ip='"$2"' $KUBELET_KUBECONFIG_ARGS $KUBELET_CONFIG_ARGS $KUBELET_KUBEADM_ARGS $KUBELET_EXTRA_ARGS/g' /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
 
-sudo systemctl daemon-reload
-sudo sleep 5
-sudo systemctl restart docker
-sudo sleep 5
-sudo systemctl restart kubelet
-sudo sleep 5
+#sudo systemctl daemon-reload
+#sudo sleep 5
+#sudo systemctl restart docker
+#sudo sleep 5
+#sudo systemctl restart kubelet
+#sudo sleep 5
 
 
 # Join worker nodes to the Kubernetes cluster
 echo "[TASK 4] Join node to Kubernetes Cluster"
 sudo apt-get  install -y sshpass >/dev/null 2>&1
-#sshpass -p "kubeadmin" scp -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no kmaster.example.com:/joincluster.sh /joincluster.sh 2>/dev/null
-sudo sshpass -p "kubeadmin" scp -o StrictHostKeyChecking=no kmaster.example.com:/joincluster.sh /joincluster.sh
+#sshpass -p "kubeadmin" scp -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no kmaster.hspo.com:/joincluster.sh /joincluster.sh 2>/dev/null
+sudo sshpass -p "kubeadmin" scp -o StrictHostKeyChecking=no kmaster.hspo.com:/joincluster.sh /joincluster.sh
 sudo bash /joincluster.sh >/dev/null 2>&1

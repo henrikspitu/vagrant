@@ -40,7 +40,8 @@ sudo sleep 5
 
 # Initialize Kubernetes
 echo "[TASK 3] Initialize Kubernetes Cluster"
-sudo kubeadm init --apiserver-advertise-address=192.29.16.50 --pod-network-cidr=192.168.0.0/16  >> /root/kubeinit.log 2>/dev/null
+# default CIDER for flannel (10.244.0.0/16) 
+sudo kubeadm init --apiserver-advertise-address=192.168.86.100 --pod-network-cidr=10.244.0.0/16  >> /root/kubeinit.log 2>/dev/null
 
 # Copy Kube admin config
 echo "[TASK 4] Copy kube admin config to Vagrant user .kube directory"
@@ -49,11 +50,11 @@ sudo cp /etc/kubernetes/admin.conf /home/vagrant/.kube/config
 chown -R vagrant:vagrant /home/vagrant/.kube
 sudo mkdir /home/hspo/.kube
 sudo cp /etc/kubernetes/admin.conf /home/hspo/.kube/config
-chown -R hspo:hspo /home/hspo/.kube
+sudo chown -R hspo:hspo /home/hspo/.kube
 
 # Deploy flannel network
-echo "[TASK 5] Deploy caliso network"
-su - vagrant -c "sudo kubectl apply -f https://projectcalico.docs.tigera.io/manifests/calico.yaml"
+echo "[TASK 5] Deploy Flannel network"
+su - vagrant -c "sudo kubectl apply -f kube-flannel.yaml"
 
 # Generate Cluster join command
 echo "[TASK 6] Generate and save cluster join command to /joincluster.sh"

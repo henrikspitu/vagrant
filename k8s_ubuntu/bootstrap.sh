@@ -3,9 +3,9 @@
 # Update hosts file
 echo "[TASK 1] Update /etc/hosts file"
 cat >>/etc/hosts<<EOF
-192.29.16.50 kmaster.example.com kmaster
-192.29.16.51 kworker1.example.com kworker1
-192.29.16.50 kworker2.example.com kworker2
+192.168.86.100 kmaster.hspo.com kmaster
+192.168.86.101 kworker1.hspo.com kworker1
+192.168.86.102 kworker2.hspo.com kworker2
 
 EOF
 
@@ -43,6 +43,10 @@ echo "[TASK 8] Installing apt-transport-https pkg"
 apt-get update && apt-get install -y apt-transport-https curl
 curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add -
 
+sudo apt-get install -y sipcalc
+sudo apt-get install -y w3m
+sudo apt-get install -y ipvsadm
+
 # Add he kubernetes sources list into the sources.list directory
 cat <<EOF | sudo tee /etc/apt/sources.list.d/kubernetes.list
 deb https://apt.kubernetes.io/ kubernetes-xenial main
@@ -69,7 +73,7 @@ systemctl restart sshd
 # Set Root password
 echo "[TASK 12] Set root password"
 echo -e "kubeadmin\nkubeadmin" | passwd root
-#echo "kubeadmin" | passwd --stdin root >/dev/null 2>&1
+echo "kubeadmin" | passwd --stdin root >/dev/null 2>&1
 
 # Update vagrant user's bashrc file
 echo "export TERM=xterm" >> /etc/bashrc

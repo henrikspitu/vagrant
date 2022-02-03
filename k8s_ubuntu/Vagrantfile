@@ -1,19 +1,21 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
-
+# IP's of servers have to be in the same network range as 
 ENV['VAGRANT_NO_PARALLEL'] = 'yes'
 
 Vagrant.configure(2) do |config|
 
   config.vm.provision "shell", path: "bootstrap.sh"
+  path = ENV["VAGRANT_HOME"]
 
   # Kubernetes Master Server
   # NOTE: requires: vagrant plugin install vagrant-persistent-storage
   config.vm.define "kmaster" do |kmaster|
     kmaster.vm.box = "bento/ubuntu-18.04"
-    kmaster.vm.hostname = "kmaster.example.com"
+    kmaster.vm.hostname = "kmaster.hspo.com"
     # create one network interface: , adapter: "1" but ssh will not connect
-    kmaster.vm.network "private_network", ip: "192.29.16.50" 
+    kmaster.vm.network "public_network", ip: "192.168.86.100" 
+    kmaster.vm.provision "file", source: "kube-flannel.yaml", destination: "kube-flannel.yaml"
     kmaster.persistent_storage.enabled = true
     kmaster.persistent_storage.location = "~/elk/masterhdd.vdi"
     kmaster.persistent_storage.size = 10000
@@ -29,16 +31,16 @@ Vagrant.configure(2) do |config|
     ssh_pub_key = File.readlines("#{Dir.home}/.ssh/id_rsa.pub").first.strip
     kmaster.vm.provision "shell", path: "bootstrap_kmaster.sh", :args => [ssh_pub_key]
   end
-
+   
   NodeCount = 2
 
   # Kubernetes Worker Nodes
   (1..NodeCount).each do |i|
     config.vm.define "kworker#{i}" do |workernode|
-      ip_addr = "192.29.16.5#{i}"
+      ip_addr = "192.168.86.10#{i}"
       workernode.vm.box = "bento/ubuntu-18.04"
-      workernode.vm.hostname = "kworker#{i}.example.com"
-      workernode.vm.network "private_network", ip: "#{ip_addr}"
+      workernode.vm.hostname = "kworker#{i}.hspo.com"
+      workernode.vm.network "public_network", ip: "#{ip_addr}"
       workernode.persistent_storage.enabled = true
       workernode.persistent_storage.location = "~/elk/worker#{i}hdd.vdi"
       workernode.persistent_storage.size = 10000
