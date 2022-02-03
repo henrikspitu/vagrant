@@ -41,7 +41,7 @@ sudo sleep 5
 # Initialize Kubernetes
 echo "[TASK 3] Initialize Kubernetes Cluster"
 # default CIDER for flannel (10.244.0.0/16) 
-sudo kubeadm init --apiserver-advertise-address=192.168.86.100 --pod-network-cidr=10.244.0.0/16  >> /root/kubeinit.log 2>/dev/null
+sudo kubeadm init --apiserver-advertise-address=192.168.86.150 --pod-network-cidr=10.244.0.0/16  >> /root/kubeinit.log 2>/dev/null
 
 # Copy Kube admin config
 echo "[TASK 4] Copy kube admin config to Vagrant user .kube directory"

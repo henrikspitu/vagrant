@@ -3,9 +3,9 @@
 # Update hosts file
 echo "[TASK 1] Update /etc/hosts file"
 cat >>/etc/hosts<<EOF
-192.168.86.100 kmaster.hspo.com kmaster
-192.168.86.101 kworker1.hspo.com kworker1
-192.168.86.102 kworker2.hspo.com kworker2
+192.168.86.150 kmaster.sharks4it.com kmaster
+192.168.86.151 kworker1.sharks4it.com kworker1
+192.168.86.152 kworker2.sharks4it.com kworker2
 
 EOF
 
