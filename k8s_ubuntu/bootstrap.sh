@@ -46,6 +46,7 @@ curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add -
 sudo apt-get install -y sipcalc
 sudo apt-get install -y w3m
 sudo apt-get install -y ipvsadm
+sudo apt-get install sshpass
 
 # Add he kubernetes sources list into the sources.list directory
 cat <<EOF | sudo tee /etc/apt/sources.list.d/kubernetes.list

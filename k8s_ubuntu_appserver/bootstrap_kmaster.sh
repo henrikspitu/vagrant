@@ -51,6 +51,8 @@ chown -R vagrant:vagrant /home/vagrant/.kube
 sudo mkdir /home/hspo/.kube
 sudo cp /etc/kubernetes/admin.conf /home/hspo/.kube/config
 sudo chown -R hspo:hspo /home/hspo/.kube
+sudo mkdir /root/.kube
+sudo cp /etc/kubernetes/admin.conf /root/.kube/config
 
 # Deploy flannel network
 echo "[TASK 5] Deploy Flannel network"
@@ -59,16 +61,28 @@ su - vagrant -c "sudo kubectl apply -f kube-flannel.yaml"
 # Generate Cluster join command
 echo "[TASK 6] Generate and save cluster join command to /joincluster.sh"
 sudo kubeadm token create --print-join-command > /joincluster.sh
+sudo sleep 10
 
 # Install helm
-# echo "[TASK 7] install helm"
-# curl https://baltocdn.com/helm/signing.asc | sudo apt-key add -
-# sudo apt-get install apt-transport-https --yes
-# echo "deb https://baltocdn.com/helm/stable/debian/ all main" | sudo tee /etc/apt/sources.list.d/helm-stable-debian.list
-# sudo apt-get update
-# sudo apt-get install helm
-# sudo kubectl --namespace kube-system create sa tiller
-# sudo kubectl create clusterrolebinding tiller --clusterrole cluster-admin --serviceaccount=kube-system:tiller
+ echo "[TASK 7] install helm"
+ curl https://baltocdn.com/helm/signing.asc | sudo apt-key add -
+ sudo apt-get install apt-transport-https --yes
+ echo "deb https://baltocdn.com/helm/stable/debian/ all main" | sudo tee /etc/apt/sources.list.d/helm-stable-debian.list
+ sudo apt-get update
+ sudo apt-get install helm
+ sudo kubectl --namespace kube-system create sa tiller
+ sudo kubectl create clusterrolebinding tiller --clusterrole cluster-admin --serviceaccount=kube-system:tiller
+
+ 
+# Install MetalLB
+ echo "[TASK 8] apply MetalLB"
+sudo kubectl apply -f /home/vagrant/files/metallb/namespace.yaml
+sudo kubectl apply -f /home/vagrant/files/metallb/configmap.yaml
+sudo kubectl apply -f /home/vagrant/files/metallb/metallb.yaml
+
+# install kubernetes dashboard
+echo "[TASK 9] install  kubernetes dashboard"
+sudo kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v2.4.0/aio/deploy/recommended.yaml
 
 
 
