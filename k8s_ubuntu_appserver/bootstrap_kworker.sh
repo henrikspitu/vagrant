@@ -48,3 +48,6 @@ sudo apt-get  install -y sshpass >/dev/null 2>&1
 #sshpass -p "kubeadmin" scp -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no kmaster.hspo.com:/joincluster.sh /joincluster.sh 2>/dev/null
 sudo sshpass -p "kubeadmin" scp -o StrictHostKeyChecking=no kmaster.sharks4it.com:/joincluster.sh /joincluster.sh
 sudo bash /joincluster.sh >/dev/null 2>&1
+
+echo "[TASK 5] set ELK permissions on mount"
+sudo chown -R 1000:1000 /mnt/data

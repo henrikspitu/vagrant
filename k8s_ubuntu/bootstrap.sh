@@ -47,6 +47,9 @@ sudo apt-get install -y sipcalc
 sudo apt-get install -y w3m
 sudo apt-get install -y ipvsadm
 sudo apt-get install sshpass
+sudo apt-get install -y git
+sudo git config --global user.email "hspo5master@hotmail.com"
+sudo git config --global user.name "henrikspitu"
 
 # Add he kubernetes sources list into the sources.list directory
 cat <<EOF | sudo tee /etc/apt/sources.list.d/kubernetes.list
