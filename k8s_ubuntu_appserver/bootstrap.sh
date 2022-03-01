@@ -9,6 +9,10 @@ cat >>/etc/hosts<<EOF
 
 EOF
 
+# install time service so timestamp in logs & metricbeat are correct
+sudo apt-get install ntp
+sudo apt-get install ntpdate
+sudo ntpdate ntp.ubuntu.com
 
 echo "[TASK 2] Install docker container engine"
 apt-get install apt-transport-https ca-certificates curl software-properties-common -y
@@ -19,6 +23,7 @@ apt-get install docker-ce -y
 
 # add ccount to the docker group
 usermod -aG docker vagrant
+
 
 # Enable docker service
 echo "[TASK 3] Enable and start docker service"
