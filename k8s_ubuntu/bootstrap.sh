@@ -50,6 +50,10 @@ sudo apt-get install sshpass
 sudo apt-get install -y git
 sudo git config --global user.email "hspo5master@hotmail.com"
 sudo git config --global user.name "henrikspitu"
+# install time service so timestamp in logs & metricbeat are correct
+sudo apt-get install ntp
+sudo apt-get install ntpdate
+sudo ntpdate ntp.ubuntu.com
 
 # Add he kubernetes sources list into the sources.list directory
 cat <<EOF | sudo tee /etc/apt/sources.list.d/kubernetes.list

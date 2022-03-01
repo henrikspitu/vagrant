@@ -1,14 +1,21 @@
-kind: PersistentVolume
-apiVersion: v1
+apiVersion: elasticsearch.k8s.elastic.co/v1
+kind: Elasticsearch
 metadata:
-  name: elk-pv
-  labels:
-    type: local
+  name: quickstart
 spec:
-  storageClassName: standard
-  capacity:
-    storage: 8Gi
-  accessModes:
-    - ReadWriteOnce
-  hostPath:
-    path: "/mnt/data"
+  version: 8.0.0
+  nodeSets:
+  - name: default
+    count: 1
+    config:
+      node.store.allow_mmap: false
+    volumeClaimTemplates:
+    - metadata:
+        name: elasticsearch-data
+      spec:
+        accessModes:
+        - ReadWriteOnce
+        resources:
+          requests:
+            storage: 5Gi
+        storageClassName: standard
