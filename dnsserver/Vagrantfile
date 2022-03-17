@@ -1,0 +1,46 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+# IP's of servers have to be in the same network range as 
+ENV['VAGRANT_NO_PARALLEL'] = 'yes'
+
+Vagrant.configure(2) do |config|
+
+  config.vm.provision "shell", path: "bootstrap.sh"
+  path = ENV["VAGRANT_HOME"]
+
+ # Vagrant server
+  config.vm.define "dnsserver" do |dnsserver|
+    dnsserver.vm.box = "bento/ubuntu-18.04"
+    dnsserver.vm.hostname = "dnsserver.hspo.com"
+    # create one network interface: , adapter: "1" but ssh will not connect
+    dnsserver.vm.network "public_network", ip: "192.168.86.50" 
+    
+    dnsserver.vm.provider "virtualbox" do |v|
+      v.name = "dnsserver"
+      v.memory = 1024
+      v.cpus = 1
+    end
+    ssh_pub_key = File.readlines("#{Dir.home}/.ssh/id_rsa.pub").first.strip
+    dnsserver.vm.provision "shell", path: "bootstrap.sh", :args => [ssh_pub_key]
+  end
+
+
+  config.vm.define "dnsclient" do |dnsclient|
+    dnsclient.vm.box = "bento/ubuntu-18.04"
+    dnsclient.vm.hostname = "dnsclient.hspo.com"
+    dnsclient.vm.provision "file", source: "files", destination: "~/files"
+    
+    dnsclient.vm.network "public_network", ip: "192.168.86.51" 
+    
+    dnsclient.vm.provider "virtualbox" do |v|
+      v.name = "dnsclient"
+      v.memory = 1024
+      v.cpus = 1
+    end
+    ssh_pub_key = File.readlines("#{Dir.home}/.ssh/id_rsa.pub").first.strip
+    dnsclient.vm.provision "shell", path: "bootstrap-client.sh", :args => [ssh_pub_key]
+  end
+   
+
+
+end
