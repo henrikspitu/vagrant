@@ -3,7 +3,7 @@
 # Update hosts file
 echo "[TASK 1] Update /etc/hosts file"
 cat >>/etc/hosts<<EOF
-192.168.86.50 dnsserver.hspo.com
+192.168.86.51 dnsclient.hspo.com
 
 EOF
 

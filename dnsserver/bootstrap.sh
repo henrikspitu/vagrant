@@ -4,6 +4,10 @@
 echo "[TASK 1] Update /etc/hosts file"
 cat >>/etc/hosts<<EOF
 192.168.86.50 dnsserver.hspo.com
+192.168.86.51 dnsclient.hspo.com
+192.168.86.100 kmaster.hspo.com kmaster
+192.168.86.101 kworker1.hspo.com kworker1
+192.168.86.102 kworker2.hspo.com kworker2
 
 EOF
 
@@ -46,10 +50,11 @@ sudo ntpdate -y ntp.ubuntu.com
 
 echo "[TASK 2] Installing apps"
 apt-get update -y
-sudo apt-get -y install bind9 bind9utils bind9-doc
-sudo nano /etc/default/bind9
-OPTIONS="-u bind -4"
-sudo systemctl restart bind9
+sudo apt install dnsmasq
+sudo cp /home/vagrant/files/dnsmasq.conf /etc/dnsmasq.conf
+
+
+sudo systemctl restart dnsmasq
 
 # Update vagrant user's bashrc file
 echo "export TERM=xterm" >> /etc/bashrc

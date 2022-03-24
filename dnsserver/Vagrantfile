@@ -14,7 +14,7 @@ Vagrant.configure(2) do |config|
     dnsserver.vm.hostname = "dnsserver.hspo.com"
     # create one network interface: , adapter: "1" but ssh will not connect
     dnsserver.vm.network "public_network", ip: "192.168.86.50" 
-    
+    dnsserver.vm.provision "file", source: "files", destination: "~/files"
     dnsserver.vm.provider "virtualbox" do |v|
       v.name = "dnsserver"
       v.memory = 1024
