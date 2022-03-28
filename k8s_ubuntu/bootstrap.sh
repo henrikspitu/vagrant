@@ -51,8 +51,9 @@ sudo apt-get install -y git
 sudo git config --global user.email "hspo5master@hotmail.com"
 sudo git config --global user.name "henrikspitu"
 # install time service so timestamp in logs & metricbeat are correct
-sudo apt-get install ntp
-sudo apt-get install ntpdate
+echo "[TASK 9] Enable time service"
+sudo apt-get install -y ntp
+sudo apt-get install -y ntpdate
 sudo ntpdate ntp.ubuntu.com
 
 # Add he kubernetes sources list into the sources.list directory
@@ -65,21 +66,21 @@ ls -ltr /etc/apt/sources.list.d/kubernetes.list
 apt-get update -y
 
 # Install Kubernetes
-echo "[TASK 9] Install Kubernetes kubeadm, kubelet and kubectl"
+echo "[TASK 10] Install Kubernetes kubeadm, kubelet and kubectl"
 apt-get install -y kubelet kubeadm kubectl
 
 # Start and Enable kubelet service
-echo "[TASK 10] Enable and start kubelet service"
+echo "[TASK 11] Enable and start kubelet service"
 systemctl enable kubelet >/dev/null 2>&1
 systemctl start kubelet >/dev/null 2>&1
 
 # Enable ssh password authentication
-echo "[TASK 11] Enable ssh password authentication"
+echo "[TASK 12] Enable ssh password authentication"
 sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config
 systemctl restart sshd
 
 # Set Root password
-echo "[TASK 12] Set root password"
+echo "[TASK 13] Set root password"
 echo -e "kubeadmin\nkubeadmin" | passwd root
 echo "kubeadmin" | passwd --stdin root >/dev/null 2>&1
 
