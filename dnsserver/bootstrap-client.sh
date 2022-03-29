@@ -47,6 +47,7 @@ sudo ntpdate -y ntp.ubuntu.com
 echo "[TASK 2] Installing apps"
 apt-get update -y
 sudo apt install -y apache2
+sudo a2enmod ssl
 
 sudo mkdir /var/www/hspo
 
