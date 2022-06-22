@@ -1,0 +1,30 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+# IP's of servers have to be in the same network range as 
+ENV['VAGRANT_NO_PARALLEL'] = 'yes'
+
+Vagrant.configure(2) do |config|
+
+  config.vm.provision "shell", path: "bootstrap.sh"
+  path = ENV["VAGRANT_HOME"]
+
+ # Vagrant server
+  config.vm.define "terraform" do |terraform|
+    terraform.vm.box = "ubuntu/impish64"
+    terraform.vm.hostname = "terraform.hspo.com"
+    # create one network interface: , adapter: "1" but ssh will not connect
+    terraform.vm.network "public_network", ip: "192.168.86.52" 
+    terraform.vm.provision "file", source: "files", destination: "~/files"
+    terraform.vm.provider "virtualbox" do |v|
+      v.name = "terraform"
+      v.memory = 1024
+      v.cpus = 1
+    end
+    ssh_pub_key = File.readlines("#{Dir.home}/.ssh/id_rsa.pub").first.strip
+    terraform.vm.provision "shell", path: "bootstrap.sh", :args => [ssh_pub_key]
+  end
+
+
+
+
+end

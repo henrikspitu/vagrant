@@ -3,7 +3,10 @@
 # Update hosts file
 echo "[TASK 1] Update /etc/hosts file"
 cat >>/etc/hosts<<EOF
-192.168.86.51 dnsclient.hspo.com
+192.168.86.52 terraform.hspo.com
+192.168.86.100 kmaster.hspo.com kmaster
+192.168.86.101 kworker1.hspo.com kworker1
+192.168.86.102 kworker2.hspo.com kworker2
 
 EOF
 
@@ -18,6 +21,7 @@ sudo chsh -s /bin/bash hspo
 sudo echo set nocompatible > /home/hspo/.vimrc
 sudo chsh -s /bin/bash hspo
 sudo echo "$1" >> /home/hspo/.ssh/authorized_keys
+sudo echo "$1" >> /home/hspo/.ssh/id_rsa.pub
 #sudo echo "$1" >> /root/.ssh/authorized_keys
 sudo chown -R hspo:hspo /home/hspo/.ssh
 sudo echo "hspo ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers.d/hspo
@@ -44,16 +48,16 @@ sudo apt-get install -y ntp
 sudo apt-get install -y ntpdate
 sudo ntpdate -y ntp.ubuntu.com
 
-echo "[TASK 2] Installing apps"
+echo "[TASK 2] Installing terraform"
 apt-get update -y
-sudo apt install -y apache2
-sudo a2enmod ssl
-
-sudo cp /home/vagrant/files/001-hspo.conf /etc/apache2/sites-enabled/
-sudo cp /home/vagrant/files/index.html /var/www/html/index.html
-
-systemctl restart apache2
-
+sudo apt-get update && sudo apt-get install -y gnupg software-properties-common curl
+sudo curl -fsSL https://apt.releases.hashicorp.com/gpg | sudo apt-key add -
+sudo apt-add-repository "deb [arch=amd64] https://apt.releases.hashicorp.com $(lsb_release -cs) main"
+sudo apt-get update
+sudo apt-get install terraform
 
 # Update vagrant user's bashrc file
 echo "export TERM=xterm" >> /etc/bashrc
+
+echo "[TASK 3] Installing Azure CLI"
+sudo curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
