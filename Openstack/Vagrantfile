@@ -1,0 +1,34 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+# IP's of servers have to be in the same network range as 
+ENV['VAGRANT_NO_PARALLEL'] = 'yes'
+
+Vagrant.configure(2) do |config|
+
+  config.vm.provision "shell", path: "bootstrap.sh"
+  path = ENV["VAGRANT_HOME"]
+
+ # Vagrant server
+  config.vm.define "openstack" do |openstack|
+    openstack.vm.box = "centos/7"
+    openstack.vm.hostname = "openstack.hspo.com"
+    # create one network interface: , adapter: "1" but ssh will not connect
+    openstack.vm.network "public_network", ip: "192.168.86.55" 
+    openstack.vm.provision "file", source: "files", destination: "~/files"
+    openstack.vm.provider "virtualbox" do |v|
+      v.name = "openstack"
+      v.memory = 16384
+      v.cpus = 4
+    end
+    ssh_pub_key = File.readlines("#{Dir.home}/.ssh/id_rsa.pub").first.strip
+    openstack.vm.provision "shell", path: "bootstrap.sh", :args => [ssh_pub_key]
+    #openstack.vm.provision : reload
+    #openstack.vm.provision.reboot = true
+    #openstack.vm.provision "shell", path: "openstack-install.sh", :args => [ssh_pub_key]
+
+  end
+
+
+
+
+end
