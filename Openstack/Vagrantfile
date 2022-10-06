@@ -7,13 +7,14 @@ Vagrant.configure(2) do |config|
 
 
   path = ENV["VAGRANT_HOME"]
+  host_ip = "192.168.86.55"
 
  # Vagrant server
   config.vm.define "openstack" do |openstack|
     openstack.vm.box = "bento/ubuntu-20.04"
     openstack.vm.hostname = "openstack.hspo.com"
     # create one network interface: , adapter: "1" but ssh will not connect
-    openstack.vm.network "public_network",  ip: "192.168.86.55"
+    openstack.vm.network "public_network",  ip: host_ip
     openstack.vm.provision "file", source: "files", destination: "~/files"
     openstack.vm.provider "virtualbox" do |v|
       v.name = "openstack"
@@ -26,7 +27,7 @@ Vagrant.configure(2) do |config|
     #  run: "always",
     #  inline: "route add default gw 192.168.86.1 eth1"
     
-    openstack.vm.provision "shell", path: "bootstrap.sh", :args => [ssh_pub_key]
+    openstack.vm.provision "shell", path: "bootstrap.sh", :args => [ssh_pub_key, host_ip]
 
     # uses reload plugin
     # vagrant plugin install vagrant-reload
