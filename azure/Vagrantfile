@@ -5,15 +5,15 @@ ENV['VAGRANT_NO_PARALLEL'] = 'yes'
 
 Vagrant.configure(2) do |config|
 
-  #config.vm.provision "shell", path: "bootstrap.sh"
+  config.vm.provision "shell", path: "bootstrap.sh"
   path = ENV["VAGRANT_HOME"]
 
  # Vagrant server
-  config.vm.define "terraform" do |terraform|
+  config.vm.define "azure" do |terraform|
     terraform.vm.box = "ubuntu/impish64"
     terraform.vm.hostname = "terraform.hspo.com"
     # create one network interface: , adapter: "1" but ssh will not connect
-    terraform.vm.network "public_network", ip: "192.168.86.52" 
+    terraform.vm.network "public_network", ip: "192.168.86.55" 
     terraform.vm.provision "file", source: "files", destination: "~/files"
     terraform.vm.provider "virtualbox" do |v|
       v.name = "terraform"

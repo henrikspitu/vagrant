@@ -5,12 +5,12 @@ ENV['VAGRANT_NO_PARALLEL'] = 'yes'
 
 Vagrant.configure(2) do |config|
 
-
+  config.vm.provision "shell", path: "bootstrap.sh"
   path = ENV["VAGRANT_HOME"]
 
  # Vagrant server
   config.vm.define "openstack" do |openstack|
-    openstack.vm.box = "bento/ubuntu-20.04"
+    openstack.vm.box = "centos/8"
     openstack.vm.hostname = "openstack.hspo.com"
     # create one network interface: , adapter: "1" but ssh will not connect
     openstack.vm.network "public_network",  ip: "192.168.86.55"

@@ -6,7 +6,7 @@
 Vagrant.configure("2") do |config|
  
   config.vm.box = "generic/centos7" 
-  config.vm.network "public_network", ip: "192.29.16.10" 
+  config.vm.network "public_network", ip: "192.168.86.20" 
   config.vm.hostname ="ansible1.hspo.dk"
   # Enable ssh forward agent
   config.ssh.forward_agent = true
@@ -39,7 +39,7 @@ Vagrant.configure("2") do |config|
       sudo chown -R hspo:hspo /home/hspo/.ssh
      
       echo #{ssh_pub_key} >> /home/hspo/.ssh/authorized_keys
-      echo #{ssh_pub_key} >> /root/.ssh/authorized_keys
+     
       sudo echo "hspo ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers.d/hspo
 
       sudo useradd -m ansible -p ansible

@@ -15,7 +15,7 @@ sudo mkdir /home/hspo/.ssh
 sudo chown -R hspo:hspo /home/hspo/.ssh
 sudo mkdir /home/hspo/workspace
 sudo chown -R hspo:hspo /home/hspo/workspace
-#sudo chsh -s /bin/bash hspo
+sudo chsh -s /bin/bash hspo
 sudo echo set nocompatible > /home/hspo/.vimrc
 sudo echo "$1" >> /home/hspo/.ssh/authorized_keys
 sudo echo "$1" >> /home/hspo/.ssh/id_rsa.pub
@@ -27,35 +27,20 @@ sudo echo "hspo ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers.d/hspo
 
 # Install apt-transport-https pkg
 echo "[TASK 1] Installing apps"
-sudo apt-get update --fix-missing
-sudo apt-get install --reinstall ca-certificates
-
-#apt-get install -y wget
-#apt-get install -y unzip
-
+sudo sed -i 's/mirrorlist/#mirrorlist/g' /etc/yum.repos.d/CentOS-*
+sudo 's|#baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g' /etc/yum.repos.d/CentOS-*
+yum update -y
+sudo yum install -y wget
+sudo yum install -y unzip
+sudo yum install -y redhat-lsb-core
 #sudo yum install -y sipcalc
 #sudo yum install -y w3m
 #sudo yum install -y ipvsadm
 #sudo yum install -y sshpass
-apt-get install -y git
+sudo yum install -y git
+sudo yum install -y net-tools
 sudo git config --global user.email "hspo5master@hotmail.com"
 sudo git config --global user.name "henrikspitu"
-sudi git config --global http.postBuffer 10048576000
-
-echo "[TASK 2] Setup Openstack"
-sudo useradd -s /bin/bash -d /opt/stack -m stack
-sudo chmod +x /opt/stack
-echo "stack ALL=(ALL) NOPASSWD: ALL" | sudo tee /etc/sudoers.d/stack
-sudo -u stack -i
-git clone https://opendev.org/openstack/devstack
-cd devstack
-echo "ADMIN_PASSWORD=041275" >> local.conf
-echo "DATABASE_PASSWORD=$ADMIN_PASSWORD" >> /opt/stack/devstack/local.conf
-echo "RABBIT_PASSWORD=$ADMIN_PASSWORD" >> /opt/stack/devstack/local.conf
-echo "SERVICE_PASSWORD=$ADMIN_PASSWORD" >> /opt/stack/devstack/local.conf
-echo "HOST_IP=192.168.86.55" >> /opt/stack/devstack/local.conf
-./stack.sh
-
 
 # install time service so timestamp in logs & metricbeat are correct
 #sudo yum install -y ntp
@@ -77,7 +62,7 @@ echo "HOST_IP=192.168.86.55" >> /opt/stack/devstack/local.conf
 #sudo systemctl start network
 
 # Disable selinux
-#sudo sed -i 's/SELINUX=enforcing/SELINUX=disabled/g' /etc/selinux/config
+sudo sed -i 's/SELINUX=enforcing/SELINUX=disabled/g' /etc/selinux/config
 
 
 
