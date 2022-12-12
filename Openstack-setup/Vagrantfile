@@ -1,0 +1,104 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+# IP's of servers have to be in the same network range as 
+ENV['VAGRANT_NO_PARALLEL'] = 'yes'
+
+Vagrant.configure(2) do |config|
+
+
+  path = ENV["VAGRANT_HOME"]
+  controller_ip = "10.0.0.5"
+  storage_ip = "10.0.0.6"
+  compute1_ip = "10.0.0.7"
+
+ # Vagrant controller
+  config.vm.define "controller" do |controller|
+    controller.vm.box = "bento/ubuntu-22.04"
+    controller.vm.hostname = "controller"
+    # create one network interface: , adapter: "1" but ssh will not connect
+    # IP is RANDOM  when type dhcp is set
+    controller.vm.network "private_network", ip: controller_ip
+    controller.vm.network "private_network", ip: "10.10.10.5"
+    controller.vm.network "private_network", ip: "203.0.113.5"
+    
+    controller.vm.provision "file", source: "files", destination: "~/files"
+    controller.vm.provider "virtualbox" do |v|
+      v.name = "controller"
+      v.memory = 6144
+      v.cpus = 2
+    end
+    ssh_pub_key = File.readlines("#{Dir.home}/.ssh/id_rsa.pub").first.strip
+
+    #openstack.vm.provision "shell",
+    #  run: "always",
+    #  inline: "route add default gw 192.168.86.1 eth1"
+    
+    controller.vm.provision "shell", path: "bootstrap.sh", :args => [ssh_pub_key, controller_ip, storage_ip, compute1_ip ]
+    #controller.vm.provision "shell", path: "controller_init.sh"
+    controller.vm.provision :reload
+    controller.vm.provision "shell", path: "controller.sh", :args => [controller_ip]
+
+
+  end
+
+
+  # config.vm.define "storage" do |storage|
+  #   storage.vm.box = "bento/ubuntu-20.04"
+  #   storage.vm.hostname = "storage"
+  #   # create one network interface: , adapter: "1" but ssh will not connect
+  #   # IP is RANDOM  when type dhcp is set
+  #   storage.vm.network "private_network", ip: storage_ip
+  #   storage.vm.network "private_network", ip: "10.10.10.6"
+  #   storage.vm.network "private_network", ip: "203.0.113.6"
+    
+  #   storage.vm.provision "file", source: "files", destination: "~/files"
+  #   storage.vm.provider "virtualbox" do |v|
+  #     v.name = "openstackstorage"
+  #     v.memory = 6144
+  #     v.cpus = 2
+  #   end
+  #   ssh_pub_key = File.readlines("#{Dir.home}/.ssh/id_rsa.pub").first.strip
+
+  #   #openstack.vm.provision "shell",
+  #   #  run: "always",
+  #   #  inline: "route add default gw 192.168.86.1 eth1"
+    
+  #   storage.vm.provision "shell", path: "bootstrap.sh", :args => [ssh_pub_key, controller_ip, storage_ip, compute1_ip ]
+  #   #storage.vm.provision "shell", path: "storage.sh"
+  #   storage.vm.provision :reload
+
+
+  # end
+
+  
+  # config.vm.define "compute1" do |compute1|
+  #   compute1.vm.box = "bento/ubuntu-20.04"
+  #   compute1.vm.hostname = "compute1"
+  #   # create one network interface: , adapter: "1" but ssh will not connect
+  #   # IP is RANDOM  when type dhcp is set
+  #   compute1.vm.network "private_network", ip: compute1_ip
+  #   compute1.vm.network "private_network", ip: "10.10.10.7"
+  #   compute1.vm.network "private_network", ip: "203.0.113.7"
+    
+  #   compute1.vm.provision "file", source: "files", destination: "~/files"
+  #   compute1.vm.provider "virtualbox" do |v|
+  #     v.name = "openstackcompute1"
+  #     v.memory = 6144
+  #     v.cpus = 2
+  #   end
+  #   ssh_pub_key = File.readlines("#{Dir.home}/.ssh/id_rsa.pub").first.strip
+
+  #   #openstack.vm.provision "shell",
+  #   #  run: "always",
+  #   #  inline: "route add default gw 192.168.86.1 eth1"
+    
+  #   compute1.vm.provision "shell", path: "bootstrap.sh", :args => [ssh_pub_key, controller_ip, storage_ip, compute1_ip ]
+  #   #compute1.vm.provision "shell", path: "compute.sh"
+  #   compute1.vm.provision :reload
+
+  # end
+
+
+
+
+end
