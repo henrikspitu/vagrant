@@ -1,0 +1,281 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+# IP's of servers have to be in the same network range as 
+ENV['VAGRANT_NO_PARALLEL'] = 'yes'
+
+Vagrant.configure(2) do |config|
+
+
+  path = ENV["VAGRANT_HOME"]
+  controller_ip = "10.0.0.5"
+  storage_ip = "10.0.0.6"
+  compute1_ip = "10.0.0.7"
+  default_password = "openstack"
+
+ # Vagrant controller
+  config.vm.define "controller-test" do |controller|
+    controller.vm.box = "bento/ubuntu-16.04"
+    #controller.vm.hostname = "controller-test2"
+    # create one network interface: , adapter: "1" but ssh will not connect
+    # IP is RANDOM  when type dhcp is set
+    #controller.vm.network "private_network", ip: controller_ip
+    controller.vm.network "private_network", virtualbox__intnet: "VirtualBox Host-Only Ethernet Adapter #5", ip: controller_ip, :adapter => 1
+      
+    
+    controller.vm.provision "file", source: "files", destination: "~/files"
+    controller.vm.provider "virtualbox" do |v|
+      v.name = "controllertest3"
+      v.memory = 6144
+      v.cpus = 2
+
+      
+      #v.customize ["modifyvm", :id, "--nic2",  "hostonly"]
+      v.customize ["modifyvm", :id, "--nic2",  "natnetwork", "--nat-network2", "ProviderNetwork1", "--nicpromisc3", "allow-all" ]
+      v.customize ["modifyvm", :id, "--nic3", "natnetwork", "--nat-network3", "NatNetwork1" ]
+      v.customize ["modifyvm", :id, "--nic4",  "nat", "--natpf4", "ssh,tcp,,2222,,22" ]
+
+
+      #[--natpf<1-N> [<rulename>],tcp|udp,[<hostip>],
+      #                                     <hostport>,[<guestip>],<guestport>]
+      # <uuid|vmname>
+      #                       [--name <name>]
+      #                       [--groups <group>, ...]
+      #                       [--description <desc>]
+      #                       [--ostype <ostype>]
+      #                       [--iconfile <filename>]
+      #                       [--memory <memorysize in MB>]
+      #                       [--pagefusion on|off]
+      #                       [--vram <vramsize in MB>]
+      #                       [--acpi on|off]
+      #                       [--ioapic on|off]
+      #                       [--hpet on|off]
+      #                       [--triplefaultreset on|off]
+      #                       [--apic on|off]
+      #                       [--x2apic on|off]
+      #                       [--paravirtprovider none|default|legacy|minimal|
+      #                                           hyperv|kvm]
+      #                       [--paravirtdebug <key=value> [,<key=value> ...]]
+      #                       [--hwvirtex on|off]
+      #                       [--nestedpaging on|off]
+      #                       [--largepages on|off]
+      #                       [--vtxvpid on|off]
+      #                       [--vtxux on|off]
+      #                       [--pae on|off]
+      #                       [--longmode on|off]
+      #                       [--ibpb-on-vm-exit on|off]
+      #                       [--ibpb-on-vm-entry on|off]
+      #                       [--spec-ctrl on|off]
+      #                       [--l1d-flush-on-sched on|off]
+      #                       [--l1d-flush-on-vm-entry on|off]
+      #                       [--mds-clear-on-sched on|off]
+      #                       [--mds-clear-on-vm-entry on|off]
+      #                       [--nested-hw-virt on|off]
+      #                       [--cpu-profile "host|Intel 80[86|286|386]"]
+      #                       [--cpuid-portability-level <0..3>]
+      #                       [--cpuid-set <leaf[:subleaf]> <eax> <ebx> <ecx> <edx>]
+      #                       [--cpuid-remove <leaf[:subleaf]>]
+      #                       [--cpuidremoveall]
+      #                       [--hardwareuuid <uuid>]
+      #                       [--cpus <number>]
+      #                       [--cpuhotplug on|off]
+      #                       [--plugcpu <id>]
+      #                       [--unplugcpu <id>]
+      #                       [--cpuexecutioncap <1-100>]
+      #                       [--rtcuseutc on|off]
+      #                       [--graphicscontroller none|vboxvga|vmsvga|vboxsvga]
+      #                       [--monitorcount <number>]
+      #                       [--accelerate3d on|off]
+      #                       [--accelerate2dvideo on|off]
+      #                       [--firmware bios|efi|efi32|efi64]
+      #                       [--chipset ich9|piix3]
+      #                       [--bioslogofadein on|off]
+      #                       [--bioslogofadeout on|off]
+      #                       [--bioslogodisplaytime <msec>]
+      #                       [--bioslogoimagepath <imagepath>]
+      #                       [--biosbootmenu disabled|menuonly|messageandmenu]
+      #                       [--biosapic disabled|apic|x2apic]
+      #                       [--biossystemtimeoffset <msec>]
+      #                       [--biospxedebug on|off]
+      #                       [--system-uuid-le on|off]
+      #                       [--boot<1-4> none|floppy|dvd|disk|net>]
+      #                       [--nic<1-N> none|null|nat|bridged|intnet|hostonly|
+      #                                   generic|natnetwork]
+      #                       [--nictype<1-N> Am79C970A|Am79C973|Am79C960|
+      #                                       82540EM|82543GC|82545EM|
+      #                                       virtio]
+      #                       [--cableconnected<1-N> on|off]
+      #                       [--nictrace<1-N> on|off]
+      #                       [--nictracefile<1-N> <filename>]
+      #                       [--nicproperty<1-N> name=[value]]
+      #                       [--nicspeed<1-N> <kbps>]
+      #                       [--nicbootprio<1-N> <priority>]
+      #                       [--nicpromisc<1-N> deny|allow-vms|allow-all]
+      #                       [--nicbandwidthgroup<1-N> none|<name>]
+      #                       [--bridgeadapter<1-N> none|<devicename>]
+      #                       [--hostonlyadapter<1-N> none|<devicename>]
+      #                       [--intnet<1-N> <network name>]
+      #                       [--nat-network<1-N> <network name>]
+      #                       [--nicgenericdrv<1-N> <driver>]
+      #                       [--natnet<1-N> <network>|default]
+      #                       [--natsettings<1-N> [<mtu>],[<socksnd>],
+      #                                           [<sockrcv>],[<tcpsnd>],
+      #                                           [<tcprcv>]]
+      #                       [--natpf<1-N> [<rulename>],tcp|udp,[<hostip>],
+      #                                     <hostport>,[<guestip>],<guestport>]
+      #                       [--natpf<1-N> delete <rulename>]
+      #                       [--nattftpprefix<1-N> <prefix>]
+      #                       [--nattftpfile<1-N> <file>]
+      #                       [--nattftpserver<1-N> <ip>]
+      #                       [--natbindip<1-N> <ip>]
+      #                       [--natdnspassdomain<1-N> on|off]
+      #                       [--natdnsproxy<1-N> on|off]
+      #                       [--natdnshostresolver<1-N> on|off]
+      #                       [--nataliasmode<1-N> default|[log],[proxyonly],
+      #                                                    [sameports]]
+      #                       [--macaddress<1-N> auto|<mac>]
+      #                       [--mouse ps2|usb|usbtablet|usbmultitouch]
+      #                       [--keyboard ps2|usb]
+      #                       [--uart<1-N> off|<I/O base> <IRQ>]
+      #                       [--uartmode<1-N> disconnected|
+      #                                        server <pipe>|
+      #                                        client <pipe>|
+      #                                        tcpserver <port>|
+      #                                        tcpclient <hostname:port>|
+      #                                        file <file>|
+      #                                        <devicename>]
+      #                       [--uarttype<1-N> 16450|16550A|16750]
+      #                       [--lpt<1-N> off|<I/O base> <IRQ>]
+      #                       [--lptmode<1-N> <devicename>]
+      #                       [--guestmemoryballoon <balloonsize in MB>]
+      #                       [--vm-process-priority default|flat|low|normal|high]
+      #                       [--audio none|null|dsound]
+      #                       [--audioin on|off]
+      #                       [--audioout on|off]
+      #                       [--audiocontroller ac97|hda|sb16]
+      #                       [--audiocodec stac9700|ad1980|stac9221|sb16]
+      #                       [--clipboard-mode disabled|hosttoguest|guesttohost|
+      #                                         bidirectional]
+      #                       [--draganddrop disabled|hosttoguest|guesttohost|
+      #                                      bidirectional]
+      #                       [--vrde on|off]
+      #                       [--vrdeextpack default|<name>]
+      #                       [--vrdeproperty <name=[value]>]
+      #                       [--vrdeport <hostport>]
+      #                       [--vrdeaddress <hostip>]
+      #                       [--vrdeauthtype null|external|guest]
+      #                       [--vrdeauthlibrary default|<name>]
+      #                       [--vrdemulticon on|off]
+      #                       [--vrdereusecon on|off]
+      #                       [--vrdevideochannel on|off]
+      #                       [--vrdevideochannelquality <percent>]
+      #                       [--usbohci on|off]
+      #                       [--usbehci on|off]
+      #                       [--usbxhci on|off]
+      #                       [--usbrename <oldname> <newname>]
+      #                       [--snapshotfolder default|<path>]
+      #                       [--teleporter on|off]
+      #                       [--teleporterport <port>]
+      #                       [--teleporteraddress <address|empty>]
+      #                       [--teleporterpassword <password>]
+      #                       [--teleporterpasswordfile <file>|stdin]
+      #                       [--tracing-enabled on|off]
+      #                       [--tracing-config <config-string>]
+      #                       [--tracing-allow-vm-access on|off]
+      #                       [--usbcardreader on|off]
+      #                       [--autostart-enabled on|off]
+      #                       [--autostart-delay <seconds>]
+      #                       [--recording on|off]
+      #                       [--recordingscreens all|<screen ID> [<screen ID> ...]]
+      #                       [--recordingfile <filename>]
+      #                       [--recordingvideores <width> <height>]
+      #                       [--recordingvideorate <rate>]
+      #                       [--recordingvideofps <fps>]
+      #                       [--recordingmaxtime <s>]
+      #                       [--recordingmaxsize <MB>]
+      #                       [--recordingopts <key=value> [,<key=value> ...]]
+      #                       [--defaultfrontend default|<name>]
+    
+    
+      # vms|runningvms|ostypes|hostdvds|hostfloppies|
+      # intnets|bridgedifs|hostonlyifs|natnets|dhcpservers|
+      # hostinfo|hostcpuids|hddbackends|hdds|dvds|floppies|
+      # usbhost|usbfilters|systemproperties|extpacks|
+      # groups|webcams|screenshotformats|cloudproviders|
+      # cloudprofiles|cloudnets
+    
+    end
+    ssh_pub_key = File.readlines("#{Dir.home}/.ssh/id_rsa.pub").first.strip
+
+    #openstack.vm.provision "shell",
+    #  run: "always",
+    #  inline: "route add default gw 192.168.86.1 eth1"
+    
+    # controller.vm.provision "shell", path: "bootstrap.sh", :args => [ssh_pub_key, controller_ip, storage_ip, compute1_ip, default_password ]
+    # #controller.vm.provision "shell", path: "controller_init.sh"
+    # controller.vm.provision :reload
+    # controller.vm.provision "shell", path: "controller.sh", :args => [controller_ip, default_password]
+
+
+  end
+
+
+  # config.vm.define "storage" do |storage|
+  #   storage.vm.box = "bento/ubuntu-20.04"
+  #   storage.vm.hostname = "storage"
+  #   # create one network interface: , adapter: "1" but ssh will not connect
+  #   # IP is RANDOM  when type dhcp is set
+  #   storage.vm.network "private_network", ip: storage_ip
+  #   storage.vm.network "private_network", ip: "10.10.10.6"
+  #   storage.vm.network "private_network", ip: "203.0.113.6"
+    
+  #   storage.vm.provision "file", source: "files", destination: "~/files"
+  #   storage.vm.provider "virtualbox" do |v|
+  #     v.name = "openstackstorage"
+  #     v.memory = 6144
+  #     v.cpus = 2
+  #   end
+  #   ssh_pub_key = File.readlines("#{Dir.home}/.ssh/id_rsa.pub").first.strip
+
+  #   #openstack.vm.provision "shell",
+  #   #  run: "always",
+  #   #  inline: "route add default gw 192.168.86.1 eth1"
+    
+  #   storage.vm.provision "shell", path: "bootstrap.sh", :args => [ssh_pub_key, controller_ip, storage_ip, compute1_ip ]
+  #   #storage.vm.provision "shell", path: "storage.sh"
+  #   storage.vm.provision :reload
+
+
+  # end
+
+  
+  # config.vm.define "compute1" do |compute1|
+  #   compute1.vm.box = "bento/ubuntu-20.04"
+  #   compute1.vm.hostname = "compute1"
+  #   # create one network interface: , adapter: "1" but ssh will not connect
+  #   # IP is RANDOM  when type dhcp is set
+  #   compute1.vm.network "private_network", ip: compute1_ip
+  #   compute1.vm.network "private_network", ip: "10.10.10.7"
+  #   compute1.vm.network "private_network", ip: "203.0.113.7"
+    
+  #   compute1.vm.provision "file", source: "files", destination: "~/files"
+  #   compute1.vm.provider "virtualbox" do |v|
+  #     v.name = "openstackcompute1"
+  #     v.memory = 6144
+  #     v.cpus = 2
+  #   end
+  #   ssh_pub_key = File.readlines("#{Dir.home}/.ssh/id_rsa.pub").first.strip
+
+  #   #openstack.vm.provision "shell",
+  #   #  run: "always",
+  #   #  inline: "route add default gw 192.168.86.1 eth1"
+    
+  #   compute1.vm.provision "shell", path: "bootstrap.sh", :args => [ssh_pub_key, controller_ip, storage_ip, compute1_ip ]
+  #   #compute1.vm.provision "shell", path: "compute.sh"
+  #   compute1.vm.provision :reload
+
+  # end
+
+
+
+
+end

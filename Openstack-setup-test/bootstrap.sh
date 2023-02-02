@@ -51,14 +51,14 @@ sudo apt-get update  -y
 sudo apt-get install -y  glances
 sudo apt upgrade -y
 
-echo "[TASK END] COMPLETED"
+
 
 # configure Network settings
-# sudo echo "[TASK 4] Setup Network Interfaces"
+#TODO Move to node specific files or find a more generic way
+sudo echo "[TASK 4] Setup Network Interfaces"
 sudo sed -i 's/#VAGRANT-END/      dns-nameservers '$5'/g' /etc/network/interfaces
 sudo echo "#VAGRANT-END" >> /etc/network/interfaces
 sudo echo  >> /etc/network/interfaces
-# Note this interface will have NO IP address
 sudo echo "auto eth2" >> /etc/network/interfaces
 sudo echo "iface eth2 inet manual" >> /etc/network/interfaces
 sudo echo "  up ip link set dev eth2 up" >> /etc/network/interfaces
