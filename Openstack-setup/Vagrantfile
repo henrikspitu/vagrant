@@ -10,6 +10,7 @@ Vagrant.configure(2) do |config|
   controller_ip = "10.0.0.21"
   storage_ip = "10.0.0.31"
   compute1_ip = "10.0.0.41"
+  chrony_ip = "10.0.0.0/24"
   default_password = "openstack"
 
  # Vagrant controller
@@ -37,8 +38,7 @@ Vagrant.configure(2) do |config|
 
     controller.vm.provision "shell", path: "bootstrap.sh", :args => [ssh_pub_key, controller_ip, storage_ip, compute1_ip, controller_ip ]
     controller.vm.provision :reload
-
-    #controller.vm.provision "shell", path: "controller_init.sh"
+    controller.vm.provision "shell", path: "chrony.sh", :args => ["yes", chrony_ip]
     #controller.vm.provision :reload
     #controller.vm.provision "shell", path: "controller.sh", :args => [controller_ip, default_password]
 
@@ -67,6 +67,7 @@ Vagrant.configure(2) do |config|
 
     storage.vm.provision "shell", path: "bootstrap.sh", :args => [ssh_pub_key, controller_ip, storage_ip, compute1_ip, storage_ip ]
     storage.vm.provision :reload
+    storage.vm.provision "shell", path: "chrony.sh", :args => ["no", chrony_ip]
     #storage.vm.provision "shell", path: "storage.sh"
     
 
@@ -93,8 +94,8 @@ Vagrant.configure(2) do |config|
     #  inline: "route add default gw 192.168.86.1 eth1"
     
     compute1.vm.provision "shell", path: "bootstrap.sh", :args => [ssh_pub_key, controller_ip, storage_ip, compute1_ip, compute1_ip ]
-    #compute1.vm.provision "shell", path: "compute.sh"
     compute1.vm.provision :reload
+    compute1.vm.provision "shell", path: "chrony.sh", :args => ["no", chrony_ip]
 
   end
 
