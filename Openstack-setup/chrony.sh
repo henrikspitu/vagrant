@@ -17,9 +17,10 @@ fi
 
 sudo service chrony restart
 
-# echo "[TASK 2] Update install openstack software"
-# sudo apt install software-properties-common -y
-# sudo add-apt-repository cloud-archive:zed
-# sudo apt update && apt dist-upgrade -y
+echo "[TASK 2] Update install openstack software"
+sudo apt install software-properties-common -y
+# VERSION OF OPENSTACK IS DEFINED HERE
+sudo add-apt-repository cloud-archive:pike
+sudo apt update && apt dist-upgrade -y
 # sudo apt install python3-openstackclient -y
 

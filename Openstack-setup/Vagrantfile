@@ -11,6 +11,7 @@ Vagrant.configure(2) do |config|
   storage_ip = "10.0.0.31"
   compute1_ip = "10.0.0.41"
   chrony_ip = "10.0.0.0/24"
+  default_user = "openstack"
   default_password = "openstack"
 
  # Vagrant controller
@@ -39,9 +40,9 @@ Vagrant.configure(2) do |config|
     controller.vm.provision "shell", path: "bootstrap.sh", :args => [ssh_pub_key, controller_ip, storage_ip, compute1_ip, controller_ip ]
     controller.vm.provision :reload
     controller.vm.provision "shell", path: "chrony.sh", :args => ["yes", chrony_ip]
-    #controller.vm.provision :reload
-    #controller.vm.provision "shell", path: "controller.sh", :args => [controller_ip, default_password]
-
+    controller.vm.provision :reload
+    controller.vm.provision "shell", path: "software.sh"
+    controller.vm.provision "shell", path: "controller.sh", :args => [controller_ip, default_user, default_password]
 
   end
 
@@ -68,6 +69,8 @@ Vagrant.configure(2) do |config|
     storage.vm.provision "shell", path: "bootstrap.sh", :args => [ssh_pub_key, controller_ip, storage_ip, compute1_ip, storage_ip ]
     storage.vm.provision :reload
     storage.vm.provision "shell", path: "chrony.sh", :args => ["no", chrony_ip]
+    storage.vm.provision :reload
+    storage.vm.provision "shell", path: "software.sh"
     #storage.vm.provision "shell", path: "storage.sh"
     
 
@@ -96,6 +99,8 @@ Vagrant.configure(2) do |config|
     compute1.vm.provision "shell", path: "bootstrap.sh", :args => [ssh_pub_key, controller_ip, storage_ip, compute1_ip, compute1_ip ]
     compute1.vm.provision :reload
     compute1.vm.provision "shell", path: "chrony.sh", :args => ["no", chrony_ip]
+    compute1.vm.provision :reload
+    compute1.vm.provision "shell", path: "software.sh"
 
   end
 
