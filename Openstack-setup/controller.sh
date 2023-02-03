@@ -170,7 +170,7 @@ openstack role add --project demo --user demo user
 
 echo "Openstack commands done"
 
-# echo "[TASK 9] setup Glance"
+echo "[TASK 9] setup Glance"
 
 sudo mysql -e "CREATE DATABASE glance"
 sudo mysql -e "GRANT ALL PRIVILEGES ON glance.* TO 'glance'@'localhost' IDENTIFIED BY '$3'"
@@ -225,4 +225,101 @@ sudo wget http://download.cirros-cloud.net/0.3.5/cirros-0.3.5-x86_64-disk.img
 openstack image create cirros3.5 --file cirros-0.3.5-x86_64-disk.img --disk-format qcow2 --container-format bare --public
 openstack image list
 
-echo "Glance Config done"
+
+echo "[TASK 10] setup Nova"
+
+sudo mysql -e "CREATE DATABASE nova_api"
+sudo mysql -e "CREATE DATABASE nova"
+sudo mysql -e "CREATE DATABASE nova_cell0"
+sudo mysql -e "GRANT ALL PRIVILEGES ON nova_api.* TO 'nova'@'localhost' IDENTIFIED BY '$3'"
+sudo mysql -e "GRANT ALL PRIVILEGES ON nova_api.* TO 'nova'@'%' IDENTIFIED BY '$3'"
+sudo mysql -e "GRANT ALL PRIVILEGES ON nova.* TO 'nova'@'localhost' IDENTIFIED BY '$3'"
+sudo mysql -e "GRANT ALL PRIVILEGES ON nova.* TO 'nova'@'%' IDENTIFIED BY '$3'"
+sudo mysql -e "GRANT ALL PRIVILEGES ON nova_cell0.* TO 'nova'@'localhost' IDENTIFIED BY '$3'"
+sudo mysql -e "GRANT ALL PRIVILEGES ON nova_cell0.* TO 'nova'@'%' IDENTIFIED BY '$3'"
+
+openstack user create --domain default --password $3 nova
+openstack role add --project service --user nova admin
+
+openstack service create --name nova --description "OpenStack Compute" compute
+openstack endpoint create --region RegionOne compute public http://controller:8774/v2.1
+openstack endpoint create --region RegionOne compute internal http://controller:8774/v2.1
+openstack endpoint create --region RegionOne compute admin http://controller:8774/v2.1
+
+openstack user create --domain default --password $3 placement
+openstack role add --project service --user placement admin
+
+openstack service create --name placement --description "Placement API" placement
+openstack endpoint create --region RegionOne placement public http://controller:8778
+openstack endpoint create --region RegionOne placement internal http://controller:8778
+openstack endpoint create --region RegionOne placement admin http://controller:8778
+
+sudo apt install -y nova-api nova-conductor nova-consoleauth nova-novncproxy nova-scheduler nova-placement-api
+
+# Configure MySQL & RabbitMQ parameters in /etc/nova/nova.conf
+sudo crudini --set /etc/nova/nova.conf api_database connection mysql+pymysql://nova:$3@controller/nova_api
+sudo crudini --set /etc/nova/nova.conf database connection mysql+pymysql://nova:$3@controller/nova
+sudo crudini --set /etc/nova/nova.conf DEFAULT transport_url rabbit://openstack:$3@controller
+
+#Configure Identity Service access
+sudo crudini --set /etc/nova/nova.conf api auth_strategy keystone
+sudo crudini --set /etc/nova/nova.conf keystone_authtoken auth_uri http://controller:5000
+sudo crudini --set /etc/nova/nova.conf keystone_authtoken auth_url http://controller:35357
+sudo crudini --set /etc/nova/nova.conf keystone_authtoken memcached_servers controller:11211
+sudo crudini --set /etc/nova/nova.conf keystone_authtoken auth_type password
+sudo crudini --set /etc/nova/nova.conf keystone_authtoken project_domain_name default
+sudo crudini --set /etc/nova/nova.conf keystone_authtoken user_domain_name default
+sudo crudini --set /etc/nova/nova.conf keystone_authtoken project_name service
+sudo crudini --set /etc/nova/nova.conf keystone_authtoken username nova
+sudo crudini --set /etc/nova/nova.conf keystone_authtoken password $3
+
+#Configure support for Networking Service
+sudo crudini --set /etc/nova/nova.conf DEFAULT my_ip $1
+sudo crudini --set /etc/nova/nova.conf DEFAULT use _neutron True
+sudo crudini --set /etc/nova/nova.conf DEFAULT firewall_driver nova.virt.firewall.NoopFirewallDriver
+
+#Configure vnc proxy on Controller Node
+sudo crudini --set /etc/nova/nova.conf vnc enabled True
+sudo crudini --set /etc/nova/nova.conf vnc vncserver_listen $1
+sudo crudini --set /etc/nova/nova.conf vnc vncserver_proxyclient_address $1
+
+#Configure Glance location
+sudo crudini --set /etc/nova/nova.conf glance api_servers http://controller:9292
+
+# Configure Lock Path for Oslo Concurrency
+sudo crudini --set /etc/nova/nova.conf oslo_concurrency lock_path /var/lib/nova/tmp
+
+# Configure Placement API
+sudo crudini --set /etc/nova/nova.conf placement os_region_name RegionOne
+sudo crudini --set /etc/nova/nova.conf placement project_domain_name Default
+sudo crudini --set /etc/nova/nova.conf placement project_name service
+sudo crudini --set /etc/nova/nova.conf placement auth_type password
+sudo crudini --set /etc/nova/nova.conf placement user_domain_name Default
+sudo crudini --set /etc/nova/nova.conf placement auth_url http://controller:35357/v3
+sudo crudini --set /etc/nova/nova.conf placement username placement
+sudo crudini --set /etc/nova/nova.conf placement password $3
+
+# Remove log_dir parameter in DEFAULT section
+sudo crudini --del /etc/nova/nova.conf DEFAULT log_dir
+
+sudo su -s /bin/sh -c "nova-manage api_db sync" nova
+
+#Register cell0 Database
+sudo su -s /bin/sh -c "nova-manage cell_v2 map_cell0" nova
+
+#Create cell1 Cell
+sudo su -s /bin/sh -c "nova-manage cell_v2 create_cell --name=cell1 --verbose" nova
+
+#Populate nova Database
+sudo su -s /bin/sh -c "nova-manage db sync" nova
+
+# Verify configuration of Cells
+sudo nova-manage cell_v2 list_cells
+
+sudo service nova-api restart
+sudo service nova-consoleauth restart
+sudo service nova-scheduler restart
+sudo service nova-conductor restart
+sudo service nova-novncproxy restart
+
+echo "Novo DONE on controller"
