@@ -142,29 +142,45 @@ export OS_IMAGE_API_VERSION=2
 EOF
 sudo chmod +x /home/vagrant/demo-openrc
 
-sudo . /home/vagrant/admin-openrc
+# set for vagrant to run automation
+export OS_PROJECT_DOMAIN_NAME=Default
+export OS_USER_DOMAIN_NAME=Default
+export OS_PROJECT_NAME=demo
+export OS_USERNAME=demo
+export OS_PASSWORD=$3
+export OS_AUTH_URL=http://controller:35357/v3
+export OS_IDENTITY_API_VERSION=3
+export OS_IMAGE_API_VERSION=2
 
-sudo openstack token issue
+echo "IS the ENV vars SET"
+echo $OS_USERNAME
+
+source /home/vagrant/admin-openrc
+
+echo "IS the ENV vars SET NOW ?"
+echo $OS_USERNAME
+openstack token issue
 
 echo "[TASK 8] Setup Keystone Resources"
-sudo openstack project create --domain default --description "Service Project" service
-sudo openstack project create --domain default --description "Demo Project" demo
-sudo openstack user create --domain default --password $3 demo
-sudo openstack role create user
-sudo openstack role add --project demo --user demo user				
+openstack project create --domain default --description "Service Project" service
+openstack project create --domain default --description "Demo Project" demo
+openstack user create --domain default --password $3 demo
+openstack role create user
+openstack role add --project demo --user demo user				
 
+echo "Openstack commands done"
 
-echo "[TASK 3] setup Glance"
+# echo "[TASK 9] setup Glance"
 
 sudo mysql -e "CREATE DATABASE glance"
 sudo mysql -e "GRANT ALL PRIVILEGES ON glance.* TO 'glance'@'localhost' IDENTIFIED BY '$3'"
 sudo mysql -e "GRANT ALL PRIVILEGES ON glance.* TO 'glance'@'%' IDENTIFIED BY '$3'"
-sudo openstack user create --domain default --password $3 glance
-sudo openstack role add --project service --user glance admin
-sudo openstack service create --name glance --description "OpenStack Image" image
-sudo openstack endpoint create --region RegionOne image public http://controller:9292
-sudo openstack endpoint create --region RegionOne image internal http://controller:9292
-sudo openstack endpoint create --region RegionOne image admin http://controller:9292
+openstack user create --domain default --password $3 glance
+openstack role add --project service --user glance admin
+openstack service create --name glance --description "OpenStack Image" image
+openstack endpoint create --region RegionOne image public http://controller:9292
+openstack endpoint create --region RegionOne image internal http://controller:9292
+openstack endpoint create --region RegionOne image admin http://controller:9292
 
 sudo apt update -y	
 sudo apt install glance -y	
@@ -203,7 +219,10 @@ sudo su -s /bin/sh -c "glance-manage db_sync" glance
 sudo service glance-registry restart
 sudo service glance-api restart
 
-#sudo . /home/vagrant/admin-openrc
-#sudo wget http://download.cirros-cloud.net/0.3.5/cirros-0.3.5-x86_64-disk.img
-#sudo openstack image create cirros3.5 --file cirros-0.3.5-x86_64-disk.img --disk-format qcow2 --container-format bare --public
-#sudo openstack image list
+source /home/vagrant/admin-openrc
+
+sudo wget http://download.cirros-cloud.net/0.3.5/cirros-0.3.5-x86_64-disk.img
+openstack image create cirros3.5 --file cirros-0.3.5-x86_64-disk.img --disk-format qcow2 --container-format bare --public
+openstack image list
+
+echo "Glance Config done"
