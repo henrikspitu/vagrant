@@ -13,6 +13,8 @@ Vagrant.configure(2) do |config|
   chrony_ip = "10.0.0.0/24"
   default_user = "openstack"
   default_password = "openstack"
+  ssh_user = "vagrant"
+  ssh_password = "vagrant"
 
  # Vagrant controller
   config.vm.define "controller" do |controller|
@@ -23,6 +25,13 @@ Vagrant.configure(2) do |config|
     # REMEMBER INTERFACE NEED TO BE MODIFIED WHEN CHANGING HOST
     controller.vm.network "private_network", virtualbox__intnet: "VirtualBox Host-Only Ethernet Adapter #5", ip: controller_ip, :adapter => 2
     controller.vm.provision "file", source: "files", destination: "~/files"
+    controller.persistent_storage.enabled = true
+    controller.persistent_storage.location = "~/storage.vdi"
+    controller.persistent_storage.size = 25000
+    #controller.persistent_storage.mountname = 'data'
+    #controller.persistent_storage.filesystem = 'ext4'
+    #controller.persistent_storage.mountpoint = '/mnt/data'
+    #controller.persistent_storage.volgroupname = 'cinder-volumes'
     controller.vm.provider "virtualbox" do |v|
       v.name = "controller"
       v.memory = 6144
@@ -47,63 +56,81 @@ Vagrant.configure(2) do |config|
   end
 
 
-  # config.vm.define "storage" do |storage|
-  #   storage.vm.box = "bento/ubuntu-16.04"
-  #   storage.vm.hostname = "storage"
-  #   storage.vm.network "private_network", virtualbox__intnet: "VirtualBox Host-Only Ethernet Adapter #5", ip: storage_ip, :adapter => 2
-  #   storage.vm.provision "file", source: "files", destination: "~/files"
-  #   storage.vm.provider "virtualbox" do |v|
-  #     v.name = "openstackstorage"
-  #     v.memory = 6144
-  #     v.cpus = 2
-  #     v.customize ["modifyvm", :id, "--nic3",  "natnetwork", "--nat-network3", "ProviderNetwork1", "--nicpromisc3", "allow-all" ]
-  #     v.customize ["modifyvm", :id, "--nic4", "natnetwork", "--nat-network4", "NatNetwork1" ]
-  #   end
-  #   ssh_pub_key = File.readlines("#{Dir.home}/.ssh/id_rsa.pub").first.strip
+  config.vm.define "storage" do |storage|
+    storage.vm.box = "bento/ubuntu-16.04"
+    storage.vm.hostname = "storage"
+    storage.vm.network "private_network", virtualbox__intnet: "VirtualBox Host-Only Ethernet Adapter #5", ip: storage_ip, :adapter => 2
+    storage.vm.provision "file", source: "files", destination: "~/files"
+    storage.persistent_storage.enabled = true
+    storage.persistent_storage.location = "~/storage.vdi"
+    storage.persistent_storage.size = 25000
+    #storage.persistent_storage.mountname = 'data'
+    #storage.persistent_storage.filesystem = 'ext4'
+    #storage.persistent_storage.mountpoint = '/mnt/data'
+    storage.persistent_storage.volgroupname = 'cinder-volumes'
+    storage.vm.provider "virtualbox" do |v|
+      v.name = "openstackstorage"
+      v.memory = 6144
+      v.cpus = 2
+      v.customize ["modifyvm", :id, "--nic3",  "natnetwork", "--nat-network3", "ProviderNetwork1", "--nicpromisc3", "allow-all" ]
+      v.customize ["modifyvm", :id, "--nic4", "natnetwork", "--nat-network4", "NatNetwork1" ]
+    end
+    ssh_pub_key = File.readlines("#{Dir.home}/.ssh/id_rsa.pub").first.strip
 
-  #   #openstack.vm.provision "shell",
-  #   #  run: "always",
-  #   #  inline: "route add default gw 192.168.86.1 eth1"
+    #openstack.vm.provision "shell",
+    #  run: "always",
+    #  inline: "route add default gw 192.168.86.1 eth1"
     
 
-  #   storage.vm.provision "shell", path: "bootstrap.sh", :args => [ssh_pub_key, controller_ip, storage_ip, compute1_ip, storage_ip ]
-  #   storage.vm.provision :reload
-  #   storage.vm.provision "shell", path: "chrony.sh", :args => ["no", chrony_ip]
-  #   storage.vm.provision :reload
-  #   storage.vm.provision "shell", path: "software.sh"
-  #   #storage.vm.provision "shell", path: "storage.sh"
+    storage.vm.provision "shell", path: "bootstrap.sh", :args => [ssh_pub_key, controller_ip, storage_ip, compute1_ip, storage_ip ]
+    storage.vm.provision :reload
+    storage.vm.provision "shell", path: "chrony.sh", :args => ["no", chrony_ip]
+    storage.vm.provision :reload
+    storage.vm.provision "shell", path: "software.sh"
+    storage.vm.provision "shell", path: "storage.sh", :args => [storage_ip, default_user, default_password, ssh_user, ssh_password]
     
 
 
-  # end
+  end
 
   
-  # config.vm.define "compute1" do |compute1|
-  #   compute1.vm.box = "bento/ubuntu-16.04"
-  #   compute1.vm.hostname = "compute1"
-  #   compute1.vm.network "private_network", virtualbox__intnet: "VirtualBox Host-Only Ethernet Adapter #5", ip: compute1_ip, :adapter => 2
-  #   compute1.vm.provision "file", source: "files", destination: "~/files"
-  #   compute1.vm.provider "virtualbox" do |v|
-  #     v.name = "openstackcompute1"
-  #     v.memory = 6144
-  #     v.cpus = 2
-  #     v.customize ["modifyvm", :id, "--nic3",  "natnetwork", "--nat-network3", "ProviderNetwork1", "--nicpromisc3", "allow-all" ]
-  #     v.customize ["modifyvm", :id, "--nic4", "natnetwork", "--nat-network4", "NatNetwork1" ]
-  #   end
-  #   ssh_pub_key = File.readlines("#{Dir.home}/.ssh/id_rsa.pub").first.strip
+  config.vm.define "compute1" do |compute1|
+    compute1.vm.box = "bento/ubuntu-16.04"
+    compute1.vm.hostname = "compute1"
+    compute1.vm.network "private_network", virtualbox__intnet: "VirtualBox Host-Only Ethernet Adapter #5", ip: compute1_ip, :adapter => 2
+    compute1.vm.provision "file", source: "files", destination: "~/files"
+    compute1.persistent_storage.enabled = true
+    compute1.persistent_storage.location = "~/storage.vdi"
+    compute1.persistent_storage.size = 25000
+    #compute1.persistent_storage.mountname = 'data'
+    #compute1.persistent_storage.filesystem = 'ext4'
+    #compute1.persistent_storage.mountpoint = '/mnt/data'
+    #compute1.persistent_storage.volgroupname = 'cinder-volumes'
+    compute1.vm.provider "virtualbox" do |v|
+      v.name = "openstackcompute1"
+      v.memory = 6144
+      v.cpus = 2
+      v.customize ["modifyvm", :id, "--nic3",  "natnetwork", "--nat-network3", "ProviderNetwork1", "--nicpromisc3", "allow-all" ]
+      v.customize ["modifyvm", :id, "--nic4", "natnetwork", "--nat-network4", "NatNetwork1" ]
+    end
+    ssh_pub_key = File.readlines("#{Dir.home}/.ssh/id_rsa.pub").first.strip
 
-  #   #openstack.vm.provision "shell",
-  #   #  run: "always",
-  #   #  inline: "route add default gw 192.168.86.1 eth1"
+    #openstack.vm.provision "shell",
+    #  run: "always",
+    #  inline: "route add default gw 192.168.86.1 eth1"
     
-  #   compute1.vm.provision "shell", path: "bootstrap.sh", :args => [ssh_pub_key, controller_ip, storage_ip, compute1_ip, compute1_ip ]
-  #   compute1.vm.provision :reload
-  #   compute1.vm.provision "shell", path: "chrony.sh", :args => ["no", chrony_ip]
-  #   compute1.vm.provision :reload
-  #   compute1.vm.provision "shell", path: "software.sh"
+    compute1.vm.provision "shell", path: "bootstrap.sh", :args => [ssh_pub_key, controller_ip, storage_ip, compute1_ip, compute1_ip ]
+    compute1.vm.provision :reload
+    compute1.vm.provision "shell", path: "chrony.sh", :args => ["no", chrony_ip]
+    compute1.vm.provision :reload
+    compute1.vm.provision "shell", path: "software.sh"
+    compute1.vm.provision "shell", path: "compute.sh", :args => [compute1_ip, default_user, default_password, ssh_user, ssh_password]
 
-  # end
+  end
 
+
+  # TODO How to call Nove register nodes command
+  #su -s /bin/sh -c "nova-manage cell_v2 discover_hosts --verbose" nova
 
 
 

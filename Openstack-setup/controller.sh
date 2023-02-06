@@ -323,3 +323,198 @@ sudo service nova-conductor restart
 sudo service nova-novncproxy restart
 
 echo "Novo DONE on controller"
+
+echo "[TASK 11] setup Neutron"
+
+
+sudo mysql -e "CREATE DATABASE neutron"
+sudo mysql -e "GRANT ALL PRIVILEGES ON neutron.* TO 'neutron'@'localhost' IDENTIFIED BY '$3'"
+sudo mysql -e "GRANT ALL PRIVILEGES ON neutron.* TO 'neutron'@'%' IDENTIFIED BY '$3'"
+
+source /home/vagrant/admin-openrc
+openstack user create --domain default --password $3 neutron
+openstack role add --project service --user neutron admin
+
+# Create Neutron Service and Endpoints
+openstack service create --name neutron --description "OpenStack Networking" network
+openstack endpoint create --region RegionOne network public http://controller:9696
+openstack endpoint create --region RegionOne network internal http://controller:9696
+openstack endpoint create --region RegionOne network admin http://controller:9696
+
+sudo apt install -y neutron-server neutron-plugin-ml2 neutron-linuxbridge-agent neutron-l3-agent neutron-dhcp-agent  neutron-metadata-agent
+
+#Configure SQL Database and RabbitMQ access for Neutron
+sudo crudini --set /etc/neutron/neutron.conf database connection mysql+pymysql://neutron:$3@controller/neutron
+sudo crudini --set /etc/neutron/neutron.conf DEFAULT transport_url rabbit://openstack:$3@controller
+
+# Enable the Modular Layer 2 (ML2) plug-in, router service, and overlapping IP addresses
+sudo crudini --set /etc/neutron/neutron.conf DEFAULT core_plugin ml2
+sudo crudini --set /etc/neutron/neutron.conf DEFAULT service_plugins router
+sudo crudini --set /etc/neutron/neutron.conf DEFAULT allow_overlapping_ips true
+
+sudo crudini --set /etc/neutron/neutron.conf api auth_strategy keystone
+sudo crudini --set /etc/neutron/neutron.conf keystone_authtoken auth_uri http://controller:5000
+sudo crudini --set /etc/neutron/neutron.conf keystone_authtoken auth_url http://controller:35357
+sudo crudini --set /etc/neutron/neutron.conf keystone_authtoken memcached_servers controller:11211
+sudo crudini --set /etc/neutron/neutron.conf keystone_authtoken auth_type password
+sudo crudini --set /etc/neutron/neutron.conf keystone_authtoken project_domain_name default
+sudo crudini --set /etc/neutron/neutron.conf keystone_authtoken user_domain_name default
+sudo crudini --set /etc/neutron/neutron.conf keystone_authtoken project_name service
+sudo crudini --set /etc/neutron/neutron.conf keystone_authtoken username neutron
+sudo crudini --set /etc/neutron/neutron.conf keystone_authtoken password $3
+
+#"Configure Networking to notify Compute of network topology changes"
+sudo crudini --set /etc/neutron/neutron.conf DEFAULT notify_nova_on_port_status_changes true
+sudo crudini --set /etc/neutron/neutron.conf DEFAULT notify_nova_on_port_data_changes true
+
+#Configure Nova access
+sudo crudini --set /etc/neutron/neutron.conf nova auth_url http://controller:35357
+sudo crudini --set /etc/neutron/neutron.conf nova auth_type password
+sudo crudini --set /etc/neutron/neutron.conf nova project_domain_name default
+sudo crudini --set /etc/neutron/neutron.conf nova user_domain_name default
+sudo crudini --set /etc/neutron/neutron.conf nova region_name RegionOne
+sudo crudini --set /etc/neutron/neutron.conf nova project_name service
+sudo crudini --set /etc/neutron/neutron.conf nova username nova
+sudo crudini --set /etc/neutron/neutron.conf nova password $3
+
+# Enable flat, VLAN and VXLAN Networks
+sudo crudini --set /etc/neutron/plugins/ml2/ml2_conf.ini ml2 type_drivers flat,vlan,vxlan
+# Enable VXLAN Self-service Networks
+sudo crudini --set /etc/neutron/plugins/ml2/ml2_conf.ini ml2 tenant_network_types vxlan
+# Enable Linux Bridge and L2Population mechanisms
+sudo crudini --set /etc/neutron/plugins/ml2/ml2_conf.ini ml2 mechanism_drivers linuxbridge,l2population
+# Enable Port Security Extenstion Driver
+sudo crudini --set /etc/neutron/plugins/ml2/ml2_conf.ini ml2 extension_drivers port_security
+# Configure provider Virtual Network as flat Network
+sudo crudini --set /etc/neutron/plugins/ml2/ml2_conf.ini ml2_type_flat flat_networks provider
+# Configure VXLAN Network Identifier Range for Self-service Networks
+sudo crudini --set /etc/neutron/plugins/ml2/ml2_conf.ini ml2_type_vxlan vni_ranges 1:1000
+# Enable ipset to increase efficiency of Security Group Rules
+sudo crudini --set /etc/neutron/plugins/ml2/ml2_conf.ini securitygroup enable_ipset true
+
+# Configure provider Virtual Network mapping to Physical Interface
+sudo crudini --set /etc/neutron/plugins/ml2/linuxbridge_agent.ini linux_bridge physical_interface_mappings provider:eth3
+# Enable VXLAN for Self-service Networks, configure IP address of the Management Interface handling VXLAN traffic
+sudo crudini --set /etc/neutron/plugins/ml2/linuxbridge_agent.ini vxlan enable_vxlan true
+sudo crudini --set /etc/neutron/plugins/ml2/linuxbridge_agent.ini vxlan local_ip $1
+sudo crudini --set /etc/neutron/plugins/ml2/linuxbridge_agent.ini vxlan l2_population true
+# Enable security groups and configure the Linux bridge iptables firewall driver
+sudo crudini --set /etc/neutron/plugins/ml2/linuxbridge_agent.ini securitygroup enable_security_group true
+sudo crudini --set /etc/neutron/plugins/ml2/linuxbridge_agent.ini securitygroup firewall_driver neutron.agent.linux.iptables_firewall.IptablesFirewallDriver
+
+sudo crudini --set /etc/neutron/l3_agent.ini DEFAULT interface_driver linuxbridge
+
+# Configure the DHCP Agent
+sudo crudini --set /etc/neutron/dhcp_agent.ini DEFAULT interface_driver linuxbridge
+sudo crudini --set /etc/neutron/dhcp_agent.ini DEFAULT dhcp_driver neutron.agent.linux.dhcp.Dnsmasq
+sudo crudini --set /etc/neutron/dhcp_agent.ini DEFAULT enable_isolated_metadata true
+
+sudo crudini --set /etc/neutron/metadata_agent.ini DEFAULT nova_metadata_host controller
+sudo crudini --set /etc/neutron/metadata_agent.ini DEFAULT metadata_proxy_shared_secret openstack
+
+sudo crudini --set /etc/nova/nova.conf neutron url http://controller:9696
+sudo crudini --set /etc/nova/nova.conf neutron auth_url http://controller:35357
+sudo crudini --set /etc/nova/nova.conf neutron auth_type password
+sudo crudini --set /etc/nova/nova.conf neutron project_domain_name default
+sudo crudini --set /etc/nova/nova.conf neutron user_domain_name default
+sudo crudini --set /etc/nova/nova.conf neutron region_name RegionOne
+sudo crudini --set /etc/nova/nova.conf neutron project_name service
+sudo crudini --set /etc/nova/nova.conf neutron username neutron
+sudo crudini --set /etc/nova/nova.conf neutron password $3
+sudo crudini --set /etc/nova/nova.conf neutron service_metadata_proxy true
+sudo crudini --set /etc/nova/nova.conf neutron metadata_proxy_shared_secret openstack
+
+sudo -s /bin/sh -c "neutron-db-manage --config-file /etc/neutron/neutron.conf --config-file /etc/neutron/plugins/ml2/ml2_conf.ini upgrade head" neutron
+
+sudo service nova-api restart
+sudo service neutron-server restart
+sudo service neutron-linuxbridge-agent restart
+sudo service neutron-dhcp-agent restart
+sudo service neutron-metadata-agent restart
+sudo service neutron-l3-agent restart
+
+echo "Neutron DONE on controller"
+
+
+echo "[TASK 11] setup Cinder"
+
+sudo mysql -e "CREATE DATABASE cinder"
+sudo mysql -e "GRANT ALL PRIVILEGES ON cinder.* TO 'cinder'@'localhost' IDENTIFIED BY '$3'"
+sudo mysql -e "GRANT ALL PRIVILEGES ON cinder.* TO 'cinder'@'%' IDENTIFIED BY '$3'"
+
+openstack user create --domain default --password $3 cinder		
+openstack role add --project service --user cinder admin
+
+openstack service create --name cinderv2 --description "OpenStack Block Storage" volumev2
+openstack service create --name cinderv3 --description "OpenStack Block Storage" volumev3
+openstack endpoint create --region RegionOne volumev2 public http://controller:8776/v2/%\(project_id\)s
+openstack endpoint create --region RegionOne volumev2 internal http://controller:8776/v2/%\(project_id\)s
+openstack endpoint create --region RegionOne volumev2 admin http://controller:8776/v2/%\(project_id\)s
+openstack endpoint create --region RegionOne volumev3 public http://controller:8776/v3/%\(project_id\)s
+openstack endpoint create --region RegionOne volumev3 internal http://controller:8776/v3/%\(project_id\)s
+openstack endpoint create --region RegionOne volumev3 admin http://controller:8776/v3/%\(project_id\)s
+
+sudo apt install -y cinder-api cinder-scheduler
+
+crudini --set /etc/cinder/cinder.conf database connection mysql+pymysql://cinder:$3@controller/cinder
+crudini --set /etc/cinder/cinder.conf DEFAULT transport_url rabbit://openstack:$3@controller
+
+crudini --set /etc/cinder/cinder.conf DEFAULT auth_strategy keystone
+crudini --set /etc/cinder/cinder.conf keystone_authtoken auth_uri http://controller:5000
+crudini --set /etc/cinder/cinder.conf keystone_authtoken auth_url http://controller:35357
+crudini --set /etc/cinder/cinder.conf keystone_authtoken memcached_servers controller:11211
+crudini --set /etc/cinder/cinder.conf keystone_authtoken auth_type password
+crudini --set /etc/cinder/cinder.conf keystone_authtoken project_domain_name default
+crudini --set /etc/cinder/cinder.conf keystone_authtoken user_domain_name default
+crudini --set /etc/cinder/cinder.conf keystone_authtoken project_name service
+crudini --set /etc/cinder/cinder.conf keystone_authtoken username cinder
+crudini --set /etc/cinder/cinder.conf keystone_authtoken password $3
+
+crudini --set /etc/cinder/cinder.conf DEFAULT my_ip $1
+crudini --set /etc/cinder/cinder.conf oslo_concurrency lock_path /var/lib/cinder/tmp
+
+sudo -s /bin/sh -c "cinder-manage db sync" cinder			
+
+crudini --set /etc/nova/nova.conf cinder os_region_name RegionOne					
+
+service nova-api restart
+service cinder-scheduler restart	
+service apache2 restart
+
+echo "[TASK 12] setup horizon"
+sudo apt install -y openstack-dashboard
+
+# replace host name
+
+
+sudo sed -i 's/ OPENSTACK_HOST = "127.0.0.1"/ OPENSTACK_HOST = "controller" /g' /etc/openstack-dashboard/local_settings.py
+sudo sed -i 's/ 127.0.0.1:11211/ controller:11211 /g' /etc/openstack-dashboard/local_settings.py
+sudo sed -i  's/127.0.0.1/controller/g' /etc/openstack-dashboard/local_settings.py
+
+
+sudo sed -i  's/v2.0/v3.0/g' /etc/openstack-dashboard/local_settings.py
+
+sudo sed -i  's/#OPENSTACK_KEYSTONE_MULTIDOMAIN_SUPPORT = False/OPENSTACK_KEYSTONE_MULTIDOMAIN_SUPPORT = True/g' /etc/openstack-dashboard/local_settings.py
+
+sudo sed -i  's/#OPENSTACK_API_VERSIONS = {/OPENSTACK_API_VERSIONS = {/g' /etc/openstack-dashboard/local_settings.py
+sudo sed -i  's/#    "data-processing": 1.1,/    "data-processing": 1.1,/g' /etc/openstack-dashboard/local_settings.py
+sudo sed -i  's/#    "identity": 3,/    "identity": 3,/g' /etc/openstack-dashboard/local_settings.py
+sudo sed -i  's/#    "volume": 2,/    "volume": 2,/g' /etc/openstack-dashboard/local_settings.py
+sudo sed -i  's/#    "compute": 2,/#/g' /etc/openstack-dashboard/local_settings.py
+
+# missing the #} of this section 
+
+#sudo sed -i  's/#OPENSTACK_KEYSTONE_DEFAULT_DOMAIN = 'Default'/OPENSTACK_KEYSTONE_DEFAULT_DOMAIN = 'Default'/g' /etc/openstack-dashboard/local_settings.py
+
+
+
+sudo sed -i -e '$aWSGIApplicationGroup %{GLOBAL}' /etc/apache2/conf-available/openstack-dashboard.conf       
+
+
+#OPENSTACK_API_VERSIONS = {
+#    "data-processing": 1.1,
+#    "identity": 3,
+#    "image": 2,
+#    "volume": 2,
+#    "compute": 2,
+#}
