@@ -100,4 +100,7 @@ crudini --set /etc/nova/nova.conf neutron username neutron
 crudini --set /etc/nova/nova.conf neutron password $3
 
 service nova-compute restart			
-service neutron-linuxbridge-agent restart			
+service neutron-linuxbridge-agent restart		
+
+echo "verify neutron on controller"
+sshpass -p $5 ssh -o StrictHostKeyChecking=no $4@controller  'sudo su; source /home/vagrant/admin-openrc; openstack network agent list'

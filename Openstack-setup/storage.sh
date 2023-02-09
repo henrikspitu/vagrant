@@ -60,3 +60,7 @@ crudini --set /etc/cinder/cinder.conf oslo_concurrency lock_path /var/lib/cinder
 
 service tgt restart
 service cinder-volume restart
+
+sshpass -p $5 ssh -o StrictHostKeyChecking=no $4@controller  'echo "Storage say hello" >> hello.log'
+sshpass -p $5 ssh -o StrictHostKeyChecking=no $4@controller  'sudo -s /bin/sh -c "cinder-manage db sync" cinder'
+sshpass -p $5 ssh -o StrictHostKeyChecking=no $4@controller  'source /home/vagrant/admin-openrc; openstack volume create --size 1 test-volume; openstack volume service list'
