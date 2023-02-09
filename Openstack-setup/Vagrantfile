@@ -7,10 +7,10 @@ Vagrant.configure(2) do |config|
 
 
   path = ENV["VAGRANT_HOME"]
-  controller_ip = "10.0.0.21"
-  storage_ip = "10.0.0.31"
-  compute1_ip = "10.0.0.41"
-  chrony_ip = "10.0.0.0/24"
+  controller_ip = "192.168.56.21"
+  storage_ip = "192.168.56.31"
+  compute1_ip = "192.168.56.41"
+  chrony_ip = "192.0.0.0/24"
   default_user = "openstack"
   default_password = "openstack"
   ssh_user = "vagrant"
@@ -23,7 +23,9 @@ Vagrant.configure(2) do |config|
     # create one network interface: , adapter: "1" but ssh will not connect
     # IP is RANDOM  when type dhcp is set
     # REMEMBER INTERFACE NEED TO BE MODIFIED WHEN CHANGING HOST
-    controller.vm.network "private_network", virtualbox__intnet: "VirtualBox Host-Only Ethernet Adapter #5", ip: controller_ip, :adapter => 2
+    #controller.vm.network "private_network", virtualbox__intnet: "VirtualBox Host-Only Ethernet Adapter #2", ip: controller_ip, :adapter => 2
+    controller.vm.network "private_network", ip: controller_ip
+    
     controller.vm.provision "file", source: "files", destination: "~/files"
     controller.persistent_storage.enabled = true
     controller.persistent_storage.location = "~/controller.vdi"
@@ -34,8 +36,8 @@ Vagrant.configure(2) do |config|
     #controller.persistent_storage.volgroupname = 'cinder-volumes'
     controller.vm.provider "virtualbox" do |v|
       v.name = "controller"
-      v.memory = 6144
-      v.cpus = 2
+      v.memory = 8192
+      v.cpus = 4
       v.customize ["modifyvm", :id, "--nic3",  "natnetwork", "--nat-network3", "ProviderNetwork1", "--nicpromisc3", "allow-all" ]
       v.customize ["modifyvm", :id, "--nic4", "natnetwork", "--nat-network4", "NatNetwork1" ]
     end
@@ -59,7 +61,7 @@ Vagrant.configure(2) do |config|
   config.vm.define "storage" do |storage|
     storage.vm.box = "bento/ubuntu-16.04"
     storage.vm.hostname = "storage"
-    storage.vm.network "private_network", virtualbox__intnet: "VirtualBox Host-Only Ethernet Adapter #5", ip: storage_ip, :adapter => 2
+    storage.vm.network "private_network", ip: storage_ip
     storage.vm.provision "file", source: "files", destination: "~/files"
     storage.persistent_storage.enabled = true
     storage.persistent_storage.location = "~/storage.vdi"
@@ -70,8 +72,8 @@ Vagrant.configure(2) do |config|
     storage.persistent_storage.volgroupname = 'cinder-volumes'
     storage.vm.provider "virtualbox" do |v|
       v.name = "openstackstorage"
-      v.memory = 6144
-      v.cpus = 2
+      v.memory = 8192
+      v.cpus = 4
       v.customize ["modifyvm", :id, "--nic3",  "natnetwork", "--nat-network3", "ProviderNetwork1", "--nicpromisc3", "allow-all" ]
       v.customize ["modifyvm", :id, "--nic4", "natnetwork", "--nat-network4", "NatNetwork1" ]
     end
@@ -97,7 +99,7 @@ Vagrant.configure(2) do |config|
   config.vm.define "compute1" do |compute1|
     compute1.vm.box = "bento/ubuntu-16.04"
     compute1.vm.hostname = "compute1"
-    compute1.vm.network "private_network", virtualbox__intnet: "VirtualBox Host-Only Ethernet Adapter #5", ip: compute1_ip, :adapter => 2
+    compute1.vm.network "private_network", ip: compute1_ip
     compute1.vm.provision "file", source: "files", destination: "~/files"
     compute1.persistent_storage.enabled = true
     compute1.persistent_storage.location = "~/compute1.vdi"
@@ -108,8 +110,8 @@ Vagrant.configure(2) do |config|
     #compute1.persistent_storage.volgroupname = 'cinder-volumes'
     compute1.vm.provider "virtualbox" do |v|
       v.name = "openstackcompute1"
-      v.memory = 6144
-      v.cpus = 2
+      v.memory = 36.864
+      v.cpus = 8
       v.customize ["modifyvm", :id, "--nic3",  "natnetwork", "--nat-network3", "ProviderNetwork1", "--nicpromisc3", "allow-all" ]
       v.customize ["modifyvm", :id, "--nic4", "natnetwork", "--nat-network4", "NatNetwork1" ]
     end

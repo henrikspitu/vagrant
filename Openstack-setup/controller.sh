@@ -491,30 +491,21 @@ sudo sed -i 's/ OPENSTACK_HOST = "127.0.0.1"/ OPENSTACK_HOST = "controller" /g' 
 sudo sed -i 's/ 127.0.0.1:11211/ controller:11211 /g' /etc/openstack-dashboard/local_settings.py
 sudo sed -i  's/127.0.0.1/controller/g' /etc/openstack-dashboard/local_settings.py
 
-
-sudo sed -i  's/v2.0/v3.0/g' /etc/openstack-dashboard/local_settings.py
+# modify version in: OPENSTACK_KEYSTONE_URL = "http://%s:5000/v3" % OPENSTACK_HOST
+sudo sed -i  's/v2.0/v3/g' /etc/openstack-dashboard/local_settings.py
 
 sudo sed -i  's/#OPENSTACK_KEYSTONE_MULTIDOMAIN_SUPPORT = False/OPENSTACK_KEYSTONE_MULTIDOMAIN_SUPPORT = True/g' /etc/openstack-dashboard/local_settings.py
 
-sudo sed -i  's/#OPENSTACK_API_VERSIONS = {/OPENSTACK_API_VERSIONS = {/g' /etc/openstack-dashboard/local_settings.py
-sudo sed -i  's/#    "data-processing": 1.1,/    "data-processing": 1.1,/g' /etc/openstack-dashboard/local_settings.py
-sudo sed -i  's/#    "identity": 3,/    "identity": 3,/g' /etc/openstack-dashboard/local_settings.py
-sudo sed -i  's/#    "volume": 2,/    "volume": 2,/g' /etc/openstack-dashboard/local_settings.py
-sudo sed -i  's/#    "compute": 2,/#/g' /etc/openstack-dashboard/local_settings.py
+# multiple lines to replace
+#https://linuxhint.com/use-sed-replace-multiple-lines/
+# sudo sed -i  's/#OPENSTACK_API_VERSIONS = {/OPENSTACK_API_VERSIONS = {/g' /etc/openstack-dashboard/local_settings.py
+# sudo sed -i  's/#    "data-processing": 1.1,/    "data-processing": 1.1,/g' /etc/openstack-dashboard/local_settings.py
+# sudo sed -i  's/#    "identity": 3,/    "identity": 3,/g' /etc/openstack-dashboard/local_settings.py
+# sudo sed -i  's/#    "volume": 2,/    "volume": 2,/g' /etc/openstack-dashboard/local_settings.py
+# sudo sed -i  's/#    "compute": 2,/#/g' /etc/openstack-dashboard/local_settings.py
+sudo perl -0777 -i.original -pe 's/#OPENSTACK_API_VERSIONS = {\n#    "data-processing": 1.1,\n#    "identity": 3,\n#    "image": 2,\n#    "volume": 2,\n#    "compute": 2,\n#}/OPENSTACK_API_VERSIONS = {\n    "data-processing": 1.1,\n    "identity": 3,\n    "image": 2,\n    "volume": 2,\n    "compute": 2,\n}/igs' /etc/openstack-dashboard/local_settings.py
 
-# missing the #} of this section 
+sudo perl -0777 -i.original -pe "s/#OPENSTACK_KEYSTONE_DEFAULT_DOMAIN = 'Default'/OPENSTACK_KEYSTONE_DEFAULT_DOMAIN = 'Default'/igs" /etc/openstack-dashboard/local_settings.py
 
-#sudo sed -i  's/#OPENSTACK_KEYSTONE_DEFAULT_DOMAIN = 'Default'/OPENSTACK_KEYSTONE_DEFAULT_DOMAIN = 'Default'/g' /etc/openstack-dashboard/local_settings.py
+sudo sed -i -e '$aWSGIApplicationGroup %{GLOBAL}' /etc/apache2/conf-available/openstack-dashboard.conf
 
-
-
-sudo sed -i -e '$aWSGIApplicationGroup %{GLOBAL}' /etc/apache2/conf-available/openstack-dashboard.conf       
-
-
-#OPENSTACK_API_VERSIONS = {
-#    "data-processing": 1.1,
-#    "identity": 3,
-#    "image": 2,
-#    "volume": 2,
-#    "compute": 2,
-#}

@@ -52,7 +52,7 @@ crudini --set /etc/nova/nova-compute.conf libvirt virt_type qemu
 
 service nova-compute restart
 
-echo "Novo DONE on Compute"
+echo "Nova DONE on Compute"
 
 # enrolle on controller
 

@@ -7,21 +7,25 @@ sudo su
 apt update -y
 apt install -y lvm2 thin-provisioning-tools crudini
 
-#fdisk -l
+fdisk -l
 
 # Disk managed by Vagrant
 
 #BUT need fdisk to delete the partition first
-
-#fdisk /dev/sdb -d -w
+vgremove cinder-volumes /dev/sdb -y
+#fdisk -dw /dev/sdb 
 #pvcreate /dev/sdb
-#vgcreate cinder-volumes /dev/sdb
+vgcreate cinder-volumes /dev/sdb -y
+
+
+#FINAL \t is to fine TAB spaces however will add filter several times
+#sed -i 's/\t# filter = \[ "a|.*" \]/filter = \[ "a\/sda\/", "a\/sdb\/", "r\/.*\/" \]/g' /etc/lvm/lvm.conf
+
+sed -i 's/devices {/devices {\n        filter = \[ "a\/sda\/", "a\/sdb\/", "r\/.*\/" \]/g' /etc/lvm/lvm.conf
 
 
 
 
-#TODO Get this to work
-#sudo sed -i 's/# filter = [ "a|.*/|" ]/filter = [ "a/sda/", "a/sdb/", "r/.*/"]/g' /etc/lvm/lvm.conf
 
 apt install -y cinder-volume
 
