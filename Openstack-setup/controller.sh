@@ -488,6 +488,8 @@ sudo apt install -y openstack-dashboard
 
 
 sudo sed -i 's/ OPENSTACK_HOST = "127.0.0.1"/ OPENSTACK_HOST = "controller" /g' /etc/openstack-dashboard/local_settings.py
+sudo sed -i "s/#SESSION_COOKIE_SECURE = True/SESSION_ENGINE = 'django.contrib.sessions.backends.cache'/g" /etc/openstack-dashboard/local_settings.py
+
 sudo sed -i 's/ 127.0.0.1:11211/ controller:11211 /g' /etc/openstack-dashboard/local_settings.py
 sudo sed -i  's/127.0.0.1/controller/g' /etc/openstack-dashboard/local_settings.py
 
@@ -503,9 +505,11 @@ sudo sed -i  's/#OPENSTACK_KEYSTONE_MULTIDOMAIN_SUPPORT = False/OPENSTACK_KEYSTO
 # sudo sed -i  's/#    "identity": 3,/    "identity": 3,/g' /etc/openstack-dashboard/local_settings.py
 # sudo sed -i  's/#    "volume": 2,/    "volume": 2,/g' /etc/openstack-dashboard/local_settings.py
 # sudo sed -i  's/#    "compute": 2,/#/g' /etc/openstack-dashboard/local_settings.py
-sudo perl -0777 -i.original -pe 's/#OPENSTACK_API_VERSIONS = {\n#    "data-processing": 1.1,\n#    "identity": 3,\n#    "image": 2,\n#    "volume": 2,\n#    "compute": 2,\n#}/OPENSTACK_API_VERSIONS = {\n    "data-processing": 1.1,\n    "identity": 3,\n    "image": 2,\n    "volume": 2,\n    "compute": 2,\n}/igs' /etc/openstack-dashboard/local_settings.py
+sudo perl -0777 -i.original -pe 's/#OPENSTACK_API_VERSIONS = \{\n#    "data-processing": 1.1,\n#    "identity": 3,\n#    "image": 2,\n#    "volume": 2,\n#    "compute": 2,\n#}/OPENSTACK_API_VERSIONS = {\n    "data-processing": 1.1,\n    "identity": 3,\n    "image": 2,\n    "volume": 2,\n    "compute": 2,\n}/igs' /etc/openstack-dashboard/local_settings.py
 
 sudo perl -0777 -i.original -pe "s/#OPENSTACK_KEYSTONE_DEFAULT_DOMAIN = 'Default'/OPENSTACK_KEYSTONE_DEFAULT_DOMAIN = 'Default'/igs" /etc/openstack-dashboard/local_settings.py
+
+sudo perl -0777 -i.original -pe 's/OPENSTACK_KEYSTONE_DEFAULT_ROLE = "_member_"/OPENSTACK_KEYSTONE_DEFAULT_ROLE = "user"/igs' /etc/openstack-dashboard/local_settings.py
 
 sudo sed -i -e '$aWSGIApplicationGroup %{GLOBAL}' /etc/apache2/conf-available/openstack-dashboard.conf
 

@@ -12,9 +12,9 @@ fdisk -l
 # Disk managed by Vagrant
 
 #BUT need fdisk to delete the partition first
-vgremove cinder-volumes /dev/sdb -y
+#vgremove cinder-volumes /dev/sdb -y
 #fdisk -dw /dev/sdb 
-#pvcreate /dev/sdb
+pvcreate /dev/sdb
 vgcreate cinder-volumes /dev/sdb -y
 
 
