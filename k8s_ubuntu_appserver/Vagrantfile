@@ -1,24 +1,30 @@
+
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
 # IP's of servers have to be in the same network range as 
 ENV['VAGRANT_NO_PARALLEL'] = 'yes'
 
 Vagrant.configure(2) do |config|
-
-  config.vm.provision "shell", path: "bootstrap.sh"
+  
+  ssh_pub_key = File.readlines("#{Dir.home}/.ssh/id_rsa.pub").first.strip
+  config.vm.provision "shell", path: "bootstrap.sh" , :args => [ssh_pub_key]
+  config.vm.provision :reload
+  config.vm.provision "shell", path: "init_nodes.sh" 
+  
   path = ENV["VAGRANT_HOME"]
 
   # Kubernetes Master Server
   # NOTE: requires: vagrant plugin install vagrant-persistent-storage
   config.vm.define "kmaster" do |kmaster|
-    kmaster.vm.box = "bento/ubuntu-18.04"
+    master_ip_addr = "192.168.1.150"
+    kmaster.vm.box = "bento/ubuntu-22.04"
     kmaster.vm.hostname = "kmaster.hspo.com"
     # create one network interface: , adapter: "1" but ssh will not connect
-    kmaster.vm.network "public_network", ip: "192.168.86.150" 
+    kmaster.vm.network "public_network", ip: "#{master_ip_addr}" 
     kmaster.vm.provision "file", source: "kube-flannel.yaml", destination: "kube-flannel.yaml"
     kmaster.vm.provision "file", source: "files", destination: "~/files"
     kmaster.persistent_storage.enabled = true
-    kmaster.persistent_storage.location = "~/elk/masterhdd.vdi"
+    kmaster.persistent_storage.location = "~/kubernetes/masterhdd.vdi"
     kmaster.persistent_storage.size = 10000
     kmaster.persistent_storage.mountname = 'data'
     kmaster.persistent_storage.filesystem = 'ext4'
@@ -27,24 +33,23 @@ Vagrant.configure(2) do |config|
     
     kmaster.vm.provider "virtualbox" do |v|
       v.name = "kmaster"
-      v.memory = 4048
-      v.cpus = 2
+      v.memory = 8096
+      v.cpus = 4
     end
-    ssh_pub_key = File.readlines("#{Dir.home}/.ssh/id_rsa.pub").first.strip
-    kmaster.vm.provision "shell", path: "bootstrap_kmaster.sh", :args => [ssh_pub_key]
+    kmaster.vm.provision "shell", path: "bootstrap_kmaster.sh ", :args => [master_ip_addr]
   end
    
-  NodeCount = 2
+  NodeCount = 1
 
   # Kubernetes Worker Nodes
   (1..NodeCount).each do |i|
     config.vm.define "kworker#{i}" do |workernode|
-      ip_addr = "192.168.86.15#{i}"
-      workernode.vm.box = "bento/ubuntu-18.04"
+      ip_addr = "192.168.1.15#{i}"
+      workernode.vm.box = "bento/ubuntu-22.04"
       workernode.vm.hostname = "kworker#{i}.hspo.com"
       workernode.vm.network "public_network", ip: "#{ip_addr}"
       workernode.persistent_storage.enabled = true
-      workernode.persistent_storage.location = "~/elk/worker#{i}hdd.vdi"
+      workernode.persistent_storage.location = "~/kubernetes/worker#{i}hdd.vdi"
       workernode.persistent_storage.size = 10000
       workernode.persistent_storage.mountname = 'data'
       workernode.persistent_storage.filesystem = 'ext4'
@@ -52,12 +57,12 @@ Vagrant.configure(2) do |config|
       workernode.persistent_storage.volgroupname = 'vg_data'
       workernode.vm.provider "virtualbox" do |v|
         v.name = "kworker#{i}"
-        v.memory = 6096
-        v.cpus = 2
+        v.memory = 8096
+        v.cpus = 6
       end
       ssh_pub_key = File.readlines("#{Dir.home}/.ssh/id_rsa.pub").first.strip
       
-      workernode.vm.provision "shell", path: "bootstrap_kworker.sh" , :args => [ssh_pub_key, ip_addr]
+      workernode.vm.provision "shell", path: "bootstrap_kworker.sh" , :args => [ip_addr]
     end
   end
 

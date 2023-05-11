@@ -1,0 +1,45 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+# IP's of servers have to be in the same network range as 
+ENV['VAGRANT_NO_PARALLEL'] = 'yes'
+
+Vagrant.configure(2) do |config|
+
+
+  path = ENV["VAGRANT_HOME"]
+  test_ip = "10.0.0.55"
+  
+
+ # Vagrant test
+  config.vm.define "test" do |test|
+    test.vm.box = "bento/ubuntu-22.04"
+    test.vm.hostname = "test"
+    # create one network interface: , adapter: "1" but ssh will not connect
+    # IP is RANDOM  when type dhcp is set
+    #test.ssh.host = "192.168.1.50"
+    #test.ssh.port = '22'
+    test.vm.network "private_network", ip: test_ip
+    
+    test.vm.provision "file", source: "files", destination: "~/files"
+    test.vm.provider "virtualbox" do |v|
+      v.name = "test"
+      v.memory = 6144
+      v.cpus = 2
+    end
+    ssh_pub_key = File.readlines("#{Dir.home}/.ssh/id_rsa.pub").first.strip
+
+    #openstack.vm.provision "shell",
+    #  run: "always",
+    #  inline: "route add default gw 192.168.86.1 eth1"
+    
+    test.vm.provision "shell", path: "bootstrap.sh", :args => [ssh_pub_key, test_ip ]
+    #test.vm.provision "shell", path: "test_init.sh"
+    # To Add to vagrant: vagrant plugin install vagrant-reload
+    #test.vm.provision :reload
+    #test.vm.provision "shell", path: "test.sh", :args => [test_ip]
+
+
+  end
+
+
+ end

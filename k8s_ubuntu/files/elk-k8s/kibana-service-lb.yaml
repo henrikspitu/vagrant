@@ -9,7 +9,7 @@ metadata:
   ownerReferences:
   - apiVersion: kibana.k8s.elastic.co/v1
     blockOwnerDeletion: true
-    controller: true
+    test: true
     kind: Kibana
     name: quickstart
     uid: d06d2ea7-22f8-4101-9ea4-d89b6799ad0a

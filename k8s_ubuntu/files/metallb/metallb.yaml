@@ -3,7 +3,7 @@ kind: PodSecurityPolicy
 metadata:
   labels:
     app: metallb
-  name: controller
+  name: test
   namespace: metallb-system
 spec:
   allowPrivilegeEscalation: false
@@ -84,7 +84,7 @@ kind: ServiceAccount
 metadata:
   labels:
     app: metallb
-  name: controller
+  name: test
   namespace: metallb-system
 ---
 apiVersion: v1
@@ -100,7 +100,7 @@ kind: ClusterRole
 metadata:
   labels:
     app: metallb
-  name: metallb-system:controller
+  name: metallb-system:test
 rules:
 - apiGroups:
   - ''
@@ -126,7 +126,7 @@ rules:
 - apiGroups:
   - policy
   resourceNames:
-  - controller
+  - test
   resources:
   - podsecuritypolicies
   verbs:
@@ -209,7 +209,7 @@ kind: Role
 metadata:
   labels:
     app: metallb
-  name: controller
+  name: test
   namespace: metallb-system
 rules:
 - apiGroups:
@@ -231,7 +231,7 @@ rules:
   resources:
   - deployments
   resourceNames:
-  - controller
+  - test
   verbs:
   - get
 ---
@@ -240,14 +240,14 @@ kind: ClusterRoleBinding
 metadata:
   labels:
     app: metallb
-  name: metallb-system:controller
+  name: metallb-system:test
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: metallb-system:controller
+  name: metallb-system:test
 subjects:
 - kind: ServiceAccount
-  name: controller
+  name: test
   namespace: metallb-system
 ---
 apiVersion: rbac.authorization.k8s.io/v1
@@ -278,7 +278,7 @@ roleRef:
   name: config-watcher
 subjects:
 - kind: ServiceAccount
-  name: controller
+  name: test
 - kind: ServiceAccount
   name: speaker
 ---
@@ -302,15 +302,15 @@ kind: RoleBinding
 metadata:
   labels:
     app: metallb
-  name: controller
+  name: test
   namespace: metallb-system
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
-  name: controller
+  name: test
 subjects:
 - kind: ServiceAccount
-  name: controller
+  name: test
 ---
 apiVersion: apps/v1
 kind: DaemonSet
@@ -397,15 +397,15 @@ kind: Deployment
 metadata:
   labels:
     app: metallb
-    component: controller
-  name: controller
+    component: test
+  name: test
   namespace: metallb-system
 spec:
   revisionHistoryLimit: 3
   selector:
     matchLabels:
       app: metallb
-      component: controller
+      component: test
   template:
     metadata:
       annotations:
@@ -413,7 +413,7 @@ spec:
         prometheus.io/scrape: 'true'
       labels:
         app: metallb
-        component: controller
+        component: test
     spec:
       containers:
       - args:
@@ -424,9 +424,9 @@ spec:
         - name: METALLB_ML_SECRET_NAME
           value: memberlist
         - name: METALLB_DEPLOYMENT
-          value: controller
-        image: quay.io/metallb/controller:v0.11.0
-        name: controller
+          value: test
+        image: quay.io/metallb/test:v0.11.0
+        name: test
         ports:
         - containerPort: 7472
           name: monitoring
@@ -442,5 +442,5 @@ spec:
         runAsNonRoot: true
         runAsUser: 65534
         fsGroup: 65534
-      serviceAccountName: controller
+      serviceAccountName: test
       terminationGracePeriodSeconds: 0

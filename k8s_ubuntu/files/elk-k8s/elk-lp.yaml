@@ -9,7 +9,7 @@ metadata:
   ownerReferences:
   - apiVersion: elasticsearch.k8s.elastic.co/v1
     blockOwnerDeletion: true
-    controller: true
+    test: true
     kind: Elasticsearch
     name: quickstart
     uid: 9cfa0f5b-9913-428a-b8a5-85fd0643d55b

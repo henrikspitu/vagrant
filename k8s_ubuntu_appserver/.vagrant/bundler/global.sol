@@ -1,1 +1,1 @@
-{"dependencies":[["vagrant-persistent-storage",["= 0.0.49"]]],"checksum":"817246ce46d4835c73f3dc8c26a6c8ddf69017d11e9077fe152eff914b7d607c","vagrant_version":"2.2.19"}
+{"dependencies":[["vagrant-persistent-storage",["= 0.0.49"]],["vagrant-reload",["= 0.0.1"]]],"checksum":"64aacf5a1af38b46faba070e70fd0ef6b00d266f2aa4cdcb2411a1e393593caa","vagrant_version":"2.3.4"}

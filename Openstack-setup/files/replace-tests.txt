@@ -1,0 +1,46 @@
+ cat sed.txt
+$ sed -z 's/It was developed by Lee E. McMahon.\nIt is used for text
+ processing./It is a very useful tool./' sed.txt
+
+
+
+#OPENSTACK_API_VERSIONS = {
+#    "data-processing": 1.1,
+#    "identity": 3,
+#    "image": 2,
+#    "volume": 2,
+#    "compute": 2,
+#}
+
+sed -z 's/hello\n man/OK\n YES/' hello.txt
+
+Working
+sed -i 's/hello/OK/' hello.txt 
+sed -i 's/#    "compute": 2,/    "compute": 2/' hello.txt
+perl -0777 -i.original -pe 's/OK\nman/YES\nOK,/igs' hello.txt
+perl -0777 -i.original -pe 's/YES\n#}/YESSS\nOK/igs' hello.txt
+perl -0777 -i.original -pe 's/YESS\n#}/NO\n}/igs' hello.txt
+perl -0777 -i.original -pe 's/*"compute"*,/"compute": 2,/igs' hello.txt
+sed -i 's/#    "compute": 2,/    "compute": 2,/' hello.txt 
+perl -pi -e 's/^#(?=#    "compute": 2,)/' hello.txt
+
+
+
+
+
+YES !!!!!
+perl -0777 -i.original -pe 's/#    "compute": 2,\n#}/    "compute": 2,\n}/igs' hello.txt
+
+perl -0777 -i.original -pe 's/#    "volume": 2,\n#    "compute": 2,\n#}/    "volume": 2,\n    "compute": 2,\n}/igs' /etc/openstack-dashboard/local_settings.py
+
+
+
+
+
+
+
+
+
+
+
+
