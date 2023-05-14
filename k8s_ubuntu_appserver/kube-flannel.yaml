@@ -109,6 +109,7 @@ metadata:
     app: flannel
     k8s-app: flannel
     tier: node
+    iface: eth1
   name: kube-flannel-ds
   namespace: kube-flannel
 spec:
@@ -122,6 +123,7 @@ spec:
         app: flannel
         k8s-app: flannel
         tier: node
+        iface: eth1
     spec:
       affinity:
         nodeAffinity:
@@ -136,6 +138,7 @@ spec:
       - args:
         - --ip-masq
         - --kube-subnet-mgr
+        - --iface=eth1
         command:
         - /opt/bin/flanneld
         env:
