@@ -78,8 +78,7 @@ sudo helm install metallb metallb/metallb --create-namespace --namespace metallb
 
 # install ingress controller
 echo "[Master TASK 9] install ingress controller"
-sudo kubectl create namespace ingress-nginx
-helm upgrade --install ingress-nginx ingress-nginx --repo https://kubernetes.github.io/ingress-nginx -create-namespace --namespace ingress-nginx
+helm upgrade --install ingress-nginx ingress-nginx --repo https://kubernetes.github.io/ingress-nginx --create-namespace --namespace ingress-nginx
 
 
 
@@ -100,3 +99,8 @@ sudo kubectl -n kubernetes-dashboard create token admin-user >  /home/vagrant/da
 
 echo "REMEMBER /home/vagrant/files/metallb/ipAddressPool.yaml need to be run after first add node have joined"
 
+
+# install nfs provisioner
+sudo helm repo add nfs-subdir-external-provisioner https://kubernetes-sigs.github.io/nfs-subdir-external-provisioner/
+
+sudo helm install nfs-provisioner-01 nfs-subdir-external-provisioner/nfs-subdir-external-provisioner --set nfs.server=192.168.1.20 --set nfs.path=/data/k8s --set storageClass.defaultClass=true --set replicaCount=1 --set storageClass.name=nfs-01 --set storageClass.provisionerName=nfs-provisioner-01 --create-namespace --namespace  nfs-provisioner
