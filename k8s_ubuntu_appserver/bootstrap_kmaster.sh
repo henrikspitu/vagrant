@@ -92,8 +92,11 @@ echo $VER
 wget https://raw.githubusercontent.com/kubernetes/dashboard/$VER/aio/deploy/recommended.yaml -O kubernetes-dashboard.yaml
 sudo kubectl apply -f kubernetes-dashboard.yaml
 sudo kubectl apply -f /home/vagrant/files/dashboard/dashboard.yaml
+sudo kubectl patch svc kubernetes-dashboard -n kubernetes-dashboard -p '{"spec": {"type": "LoadBalancer"}}'
 
 sudo kubectl -n kubernetes-dashboard create token admin-user >  /home/vagrant/dashboard-token.sh
 
-echo "NOTE DOWN ADMIN TOKEN FOR DASHBOARD"
+
+
+echo "REMEMBER /home/vagrant/files/metallb/ipAddressPool.yaml need to be run after first add node have joined"
 

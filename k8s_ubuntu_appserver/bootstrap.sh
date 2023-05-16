@@ -7,6 +7,7 @@ cat >>/etc/hosts<<EOF
 192.168.1.151 kworker1.sharks4it.com kworker1
 192.168.1.152 kworker2.sharks4it.com kworker2
 192.168.1.153 kworker2.sharks4it.com kworker3
+192.168.1.20  nfsserer.sharks4it.com  nfsserver
 
 EOF
 
@@ -36,6 +37,23 @@ echo "[Bootstrap TASK 3] update Packages"
 sudo apt update
 sudo apt -y full-upgrade
 echo "REBOOT SREVER"
+
+
+echo "[Bootstrap TASK 4] install nfs util"
+sudo apt-get install nfs-common nfs-kernel-server -y
+
+
+echo "[Bootstrap TASK 1] Update nfs permissions list"
+cat >>/etc/exports<<EOF
+/data/k8s/ 192.168.1.150(rw,no_root_squash)
+/data/k8s/ 192.168.1.151(rw,no_root_squash)
+/data/k8s/ 192.168.1.152(rw,no_root_squash)
+/data/k8s/ 192.168.1.153(rw,no_root_squash)
+
+EOF
+
+
+
 
 # # install time service so timestamp in logs & metricbeat are correct
 # sudo apt install ntp
