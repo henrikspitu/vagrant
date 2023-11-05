@@ -76,9 +76,9 @@ sudo helm install metallb metallb/metallb --create-namespace --namespace metallb
 
 
 
-# install ingress controller
-echo "[Master TASK 9] install ingress controller"
-helm upgrade --install ingress-nginx ingress-nginx --repo https://kubernetes.github.io/ingress-nginx --create-namespace --namespace ingress-nginx
+# # install ingress controller (Moved to last workernode)
+# echo "[Master TASK 9] install ingress controller"
+# helm upgrade --install ingress-nginx ingress-nginx --repo https://kubernetes.github.io/ingress-nginx --create-namespace --namespace ingress-nginx
 
 
 
@@ -86,9 +86,7 @@ helm upgrade --install ingress-nginx ingress-nginx --repo https://kubernetes.git
 
 # install kubernetes dashboard
 echo "[Master TASK 10] install  kubernetes dashboard"
-VER=$(curl -s https://api.github.com/repos/kubernetes/dashboard/releases/latest|grep tag_name|cut -d '"' -f 4)
-echo $VER
-wget https://raw.githubusercontent.com/kubernetes/dashboard/$VER/aio/deploy/recommended.yaml -O kubernetes-dashboard.yaml
+wget https://raw.githubusercontent.com/kubernetes/dashboard/v2.0.0/aio/deploy/recommended.yaml -O kubernetes-dashboard.yaml
 sudo kubectl apply -f kubernetes-dashboard.yaml
 sudo kubectl apply -f /home/vagrant/files/dashboard/dashboard.yaml
 sudo kubectl patch svc kubernetes-dashboard -n kubernetes-dashboard -p '{"spec": {"type": "LoadBalancer"}}'
@@ -100,7 +98,18 @@ sudo kubectl -n kubernetes-dashboard create token admin-user >  /home/vagrant/da
 echo "REMEMBER /home/vagrant/files/metallb/ipAddressPool.yaml need to be run after first add node have joined"
 
 
+
 # install nfs provisioner
+echo "[Master TASK 11] install  nfs provider"
 sudo helm repo add nfs-subdir-external-provisioner https://kubernetes-sigs.github.io/nfs-subdir-external-provisioner/
 
 sudo helm install nfs-provisioner-01 nfs-subdir-external-provisioner/nfs-subdir-external-provisioner --set nfs.server=192.168.1.20 --set nfs.path=/data/k8s --set storageClass.defaultClass=true --set replicaCount=1 --set storageClass.name=nfs-01 --set storageClass.provisionerName=nfs-provisioner-01 --create-namespace --namespace  nfs-provisioner
+
+
+echo "[Master TASK 12] generate sharks4it tls certs"
+
+chmod +x /home/vagrant/files/certs/create-certs.sh
+./home/vagrant/files/certs/create-certs.sh
+
+
+kube kubectl create secret generic sharks4it-tls --from-file=/home/vagrant/tls-certs/tls.key=sharks4it.key --from-file=/home/vagrant/tls-certs/rootCA.key/tls.crt=sharks4it.crt --namespace kubernetes-dashboard

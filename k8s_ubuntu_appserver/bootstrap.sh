@@ -9,6 +9,8 @@ cat >>/etc/hosts<<EOF
 192.168.1.153 kworker2.sharks4it.com kworker3
 192.168.1.20  nfsserer.sharks4it.com  nfsserver
 
+
+
 EOF
 
 

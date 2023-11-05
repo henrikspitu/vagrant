@@ -11,13 +11,37 @@ Vagrant.configure(2) do |config|
   config.vm.provision :reload
   
   
-  path = ENV["VAGRANT_HOME"]
+  # path = ENV["VAGRANT_HOME"]
+
+  config.vm.define "nfs_server_vag" do |nfs|
+    nfs_ip_addr = "192.168.1.20"
+    nfs.vm.box = "bento/ubuntu-20.04"
+    nfs.vm.hostname = "nfsserver.hspo.com"
+    # create one network interface: , adapter: "1" but ssh will not connect
+    nfs.vm.network "public_network", ip: "#{nfs_ip_addr}" 
+
+    nfs.persistent_storage.enabled = true
+    nfs.persistent_storage.location = "~/kubernetes/nfsserverhdd.vdi"
+    # 200 GB in MB
+    nfs.persistent_storage.size = 200000
+    nfs.persistent_storage.mountname = 'data'
+    nfs.persistent_storage.filesystem = 'xfs'
+    nfs.persistent_storage.mountpoint = '/data/k8s'
+    nfs.persistent_storage.volgroupname = 'k8s_data'
+    
+    nfs.vm.provider "virtualbox" do |v|
+      v.name = "nfsserver_vag"
+      v.memory = 6048
+      v.cpus = 4
+    end
+    nfs.vm.provision "shell", path: "bootstrap_nfsserver.sh ", :args => [nfs_ip_addr]
+  end
 
   # Kubernetes Master Server
   # NOTE: requires: vagrant plugin install vagrant-persistent-storage
   config.vm.define "kmaster_vag" do |kmaster|
     master_ip_addr = "192.168.1.150"
-    kmaster.vm.box = "bento/ubuntu-22.04"
+    kmaster.vm.box = "bento/ubuntu-20.04"
     kmaster.vm.hostname = "kmaster.hspo.com"
     # create one network interface: , adapter: "1" but ssh will not connect
     kmaster.vm.network "public_network", ip: "#{master_ip_addr}" 
@@ -44,13 +68,14 @@ Vagrant.configure(2) do |config|
     kmaster.vm.provision "shell", path: "bootstrap_kmaster.sh ", :args => [master_ip_addr]
   end
    
-  NodeCount = 3
+  NodeCount = 1
+  
 
   # Kubernetes Worker Nodes
   (1..NodeCount).each do |i|
     config.vm.define "kworker#{i}_vag" do |workernode|
       ip_addr = "192.168.1.15#{i}"
-      workernode.vm.box = "bento/ubuntu-22.04"
+      workernode.vm.box = "bento/ubuntu-20.04"
       workernode.vm.hostname = "kworker#{i}.hspo.com"
       workernode.vm.network "public_network", ip: "#{ip_addr}"
       workernode.persistent_storage.enabled = true
@@ -67,32 +92,10 @@ Vagrant.configure(2) do |config|
       end
       ssh_pub_key = File.readlines("#{Dir.home}/.ssh/id_rsa.pub").first.strip
       workernode.vm.provision "shell", path: "init_nodes.sh" 
-      workernode.vm.provision "shell", path: "bootstrap_kworker.sh" , :args => [ip_addr]
+      workernode.vm.provision "shell", path: "bootstrap_kworker.sh" , :args => [ip_addr, i , NodeCount]
     end
   end
 
-  config.vm.define "nfs_server_vag" do |nfs|
-    nfs_ip_addr = "192.168.1.20"
-    nfs.vm.box = "bento/ubuntu-22.04"
-    nfs.vm.hostname = "nfsserver.hspo.com"
-    # create one network interface: , adapter: "1" but ssh will not connect
-    nfs.vm.network "public_network", ip: "#{nfs_ip_addr}" 
-
-    nfs.persistent_storage.enabled = true
-    nfs.persistent_storage.location = "~/kubernetes/nfsserverhdd.vdi"
-    # 200 GB in MB
-    nfs.persistent_storage.size = 200000
-    nfs.persistent_storage.mountname = 'data'
-    nfs.persistent_storage.filesystem = 'xfs'
-    nfs.persistent_storage.mountpoint = '/data/k8s'
-    nfs.persistent_storage.volgroupname = 'k8s_data'
-    
-    nfs.vm.provider "virtualbox" do |v|
-      v.name = "nfsserver_vag"
-      v.memory = 6048
-      v.cpus = 4
-    end
-    nfs.vm.provision "shell", path: "bootstrap_nfsserver.sh ", :args => [nfs_ip_addr]
-  end
+  
 
 end
