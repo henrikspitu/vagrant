@@ -23,7 +23,7 @@ Vagrant.configure(2) do |config|
     nfs.persistent_storage.enabled = true
     nfs.persistent_storage.location = "~/kubernetes/nfsserverhdd.vdi"
     # 200 GB in MB
-    nfs.persistent_storage.size = 200000
+    nfs.persistent_storage.size = 400000
     nfs.persistent_storage.mountname = 'data'
     nfs.persistent_storage.filesystem = 'xfs'
     nfs.persistent_storage.mountpoint = '/data/k8s'
@@ -68,7 +68,7 @@ Vagrant.configure(2) do |config|
     kmaster.vm.provision "shell", path: "bootstrap_kmaster.sh ", :args => [master_ip_addr]
   end
    
-  NodeCount = 1
+  NodeCount = 4
   
 
   # Kubernetes Worker Nodes

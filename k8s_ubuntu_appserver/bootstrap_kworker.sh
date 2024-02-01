@@ -19,7 +19,7 @@ echo "[Worker TASK 2] Join node to Kubernetes Cluster"
 sudo bash /home/vagrant/joincluster.sh
 
 sudo sleep 20:
-if [ "$1" -eq "$2" ]; then
+if [ "$2" -eq "$3" ]; then
     echo "last workernode call master"
     sshpass -p 'vagrant' ssh vagrant@kmaster.sharks4it.com 'sudo kubectl apply -f /home/vagrant/files/metallb/ipAddressPool.yaml'
     echo "install nginx"

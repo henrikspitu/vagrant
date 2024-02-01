@@ -1,0 +1,197 @@
+---
+apiVersion: core.cpc.platform.confluent.io/v1beta1
+kind: ZookeeperClusterClass
+metadata:
+  name: zookeeper-openstack
+  namespace: cpc-system
+spec:
+   provisioner:
+    type: cfk
+    cfk:
+      replicas: 3
+      k8s:
+        oneReplicaPerNode: true
+        podTemplate:
+          resources:
+            requests:
+              cpu: "250m"
+              memory: "1Gi"
+            limits:
+              cpu: "750m"
+              memory: "2Gi"
+          probe:
+            liveness:
+              periodSeconds: 10
+              failureThreshold: 5
+              timeoutSeconds: 180
+            readiness:
+              periodSeconds: 10
+              failureThreshold: 5
+              timeoutSeconds: 180
+          tolerations:
+          - key: "nodetype"
+            operator: "Equal"
+            value: "kafka"
+            effect: "NoSchedule"
+      # +optional
+      image:
+        application:
+          registry: docker.io
+          repository: confluentinc/cp-zookeeper
+          tag: 7.4.0
+        init:
+          registry: docker.io
+          repository: confluentinc/confluent-init-container
+          tag: 2.6.0
+      volume:
+        data:
+          capacity: 50Gi
+        log:
+          capacity: 50Gi
+---
+apiVersion: core.cpc.platform.confluent.io/v1beta1
+kind: KafkaClusterClass
+metadata:
+  name: kafka-openstack
+  namespace: cpc-system
+spec:
+  provisioner:
+    type: cfk
+    cfk:
+      replicas: 3
+      k8s:
+        oneReplicaPerNode: true
+        podTemplate:
+          resources:
+            requests:
+              cpu: "250m"
+              memory: "1Gi"
+            limits:
+              cpu: "1"
+              memory: "2Gi"
+          probe:
+            liveness:
+              periodSeconds: 10
+              failureThreshold: 5
+              timeoutSeconds: 180
+            readiness:
+              periodSeconds: 10
+              failureThreshold: 5
+              timeoutSeconds: 180
+          tolerations:
+          - key: "nodetype"
+            operator: "Equal"
+            value: "kafka"
+            effect: "NoSchedule"
+      # +optional
+      image:
+        application:
+          registry: docker.io
+          repository: confluentinc/cp-server
+          tag: 7.4.0
+        init:
+          registry: docker.io
+          repository: confluentinc/confluent-init-container
+          tag: 2.6.0
+      volume:
+        data:
+          capacity: 50Gi
+---
+
+apiVersion: core.cpc.platform.confluent.io/v1beta1
+kind: ControlCenterClusterClass
+metadata:
+  name: controlcenter-openstack
+  namespace: cpc-system
+spec:
+  provisioner:
+    type: cfk
+    cfk:
+      id: 1
+      replicas: 1
+      k8s:
+        podTemplate:
+          resources:
+            requests:
+              cpu: "500m"
+              memory: "1000Mi"
+            limits:
+              cpu: "1"
+              memory: "2Gi"
+          probe:
+            liveness:
+              periodSeconds: 10
+              failureThreshold: 5
+              timeoutSeconds: 180
+            readiness:
+              periodSeconds: 10
+              failureThreshold: 5
+              timeoutSeconds: 180
+          tolerations:
+          - key: "nodetype"
+            operator: "Equal"
+            value: "kafka"
+            effect: "NoSchedule"
+      # +optional
+      image:
+        application:
+          registry: docker.io
+          repository: confluentinc/cp-enterprise-control-center
+          tag: 7.4.0
+        init:
+          registry: docker.io
+          repository: confluentinc/confluent-init-container
+          tag: 2.6.0
+      internalTopicReplicationFactor: 3
+      volume:
+        data:
+          capacity: 80Gi
+---
+
+apiVersion: core.cpc.platform.confluent.io/v1beta1
+kind: ConfluentPlatformBlueprint
+metadata:
+  name: cfk-openstack
+  namespace: cpc-system
+spec:
+  dockerImages:
+  - registry: docker.io
+  dnsConfig:
+    domain: sharks4it.dk
+    providerType: deployment
+    deployment:
+      subdomainRegex: hcp
+  confluentPlatform:
+    version: 7.4.0
+    http:
+       externalAccess:
+          type: loadBalancer
+          loadBalancer:
+            labels:
+              company: sharks4it.dk
+            advertisedPort: 80
+    kafkaListeners:
+      global:
+        externalAccessType: loadBalancer
+      externalListener:
+        externalAccess:
+          enabled: true
+          loadBalancer:
+            advertisedPort: 80
+  components:
+    zookeeperCluster:
+      classRef:
+        name: zookeeper-openstack
+        namespace: cpc-system
+    kafkaCluster:
+      classRef: 
+        name: kafka-openstack
+        namespace: cpc-system
+    controlCenterCluster:
+      classRef:
+        name: controlcenter-openstack
+        namespace: cpc-system
+      externalAccess:
+        enabled: true
+        dnsConfig:
+          subdomain: hcp-controlcenter

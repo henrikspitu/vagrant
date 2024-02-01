@@ -51,6 +51,7 @@ cat >>/etc/exports<<EOF
 /data/k8s/ 192.168.1.151(rw,no_root_squash)
 /data/k8s/ 192.168.1.152(rw,no_root_squash)
 /data/k8s/ 192.168.1.153(rw,no_root_squash)
+/data/k8s/ 192.168.1.154(rw,no_root_squash)
 
 EOF
 

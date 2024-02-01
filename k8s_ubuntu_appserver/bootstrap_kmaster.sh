@@ -108,8 +108,8 @@ sudo helm install nfs-provisioner-01 nfs-subdir-external-provisioner/nfs-subdir-
 
 echo "[Master TASK 12] generate sharks4it tls certs"
 
-chmod +x /home/vagrant/files/certs/create-certs.sh
-./home/vagrant/files/certs/create-certs.sh
+#chmod +x /home/vagrant/files/certs/create-certs.sh
+#./home/vagrant/files/certs/create-certs.sh
 
 
-kube kubectl create secret generic sharks4it-tls --from-file=/home/vagrant/tls-certs/tls.key=sharks4it.key --from-file=/home/vagrant/tls-certs/rootCA.key/tls.crt=sharks4it.crt --namespace kubernetes-dashboard
+#kubectl create secret generic sharks4it-tls --from-file=tls.key=/home/vagrant/tls-certs/sharks4it.key --from-file=tls.crt=/home/vagrant/tls-certs/sharks4it.crt --namespace kubernetes-dashboard

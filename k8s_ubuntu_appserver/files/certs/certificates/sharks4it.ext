@@ -1,0 +1,16 @@
+authorityKeyIdentifier=keyid,issuer
+basicConstraints=CA:FALSE
+keyUsage = digitalSignature, nonRepudiation, keyEncipherment, dataEncipherment
+subjectAltName = @alt_names
+
+[alt_names]
+DNS.1 = *.sharks4it.dk
+DNS.2 = *.confluent.svc.cluster.local
+DNS.3 = *.zookeeper.confluent.svc.cluster.local
+DNS.4 = *.kafka.confluent.svc.cluster.local
+DNS.5 = *.ldap.confluent.svc.cluster.local
+DNS.6 = ldap.confluent.svc.cluster.local
+DNS.7 = *.destination.svc.cluster.local
+DNS.8 = *.zookeeper.destination.svc.cluster.local
+DNS.9 = *.kafka.destination.svc.cluster.local
+DNS.10 = *.replicator.destination.svc.cluster.local

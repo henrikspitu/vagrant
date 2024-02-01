@@ -1,0 +1,36 @@
+apiVersion : apps/v1
+kind: Deployment
+metadata:
+  name: "confluent-platform-tester"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: "confluent"
+  template:
+    metadata:
+      labels:
+        app: "confluent"
+    spec:
+      containers:
+      - name: "confluent-testing"
+        image: "confluentinc/cp-server:latest"
+        imagePullPolicy: "IfNotPresent"
+        command: ["sh", "-c", "tail -f /dev/null"]
+        ports:
+          - name: http
+            containerPort: 80
+            protocol: TCP
+      hostAliases:
+      - ip: "192.168.1.175"
+        hostnames:
+        - "hcp-onprem-kafka-bootstrap.sharks4it.dk"
+      - ip: "192.168.1.172"
+        hostnames:
+        - "hcp-onprem-kafka-broker0.sharks4it.dk"
+      - ip: "192.168.1.173"
+        hostnames:
+        - "hcp-onprem-kafka-broker1.sharks4it.dk"
+      - ip: "192.168.1.174"
+        hostnames:
+        - "hcp-onprem-kafka-broker2.sharks4it.dk"
