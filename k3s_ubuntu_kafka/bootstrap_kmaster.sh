@@ -24,6 +24,12 @@ sudo apt-get install -y helm
 helm version
 
 
+echo "[Master TASK 5] copy kube config to hspo"
+sudo mkdir /home/hspo/.kube
+sudo cp /etc/rancher/k3s/k3s.yaml /home/hspo/.kube/config
+sudo chown -R hspo:hspo /home/hspo/.kube
+sudo chmod 600 /home/hspo/.kube
+
 # sudo lsmod | grep br_netfilter
 # sudo systemctl enable kubelet
 # sudo kubeadm config images pull

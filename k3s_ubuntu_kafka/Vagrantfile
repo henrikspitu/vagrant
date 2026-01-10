@@ -72,6 +72,7 @@ Vagrant.configure(2) do |config|
       sudo cp /var/lib/rancher/k3s/server/node-token /vagrant/node-token
       sudo chown vagrant:vagrant /vagrant/node-token
       sudo chmod 600 /vagrant/node-token
+      echo "node-token GENERATED"
     SHELL
 
 
