@@ -1,0 +1,50 @@
+apiVersion: cluster.cpc.platform.confluent.io/v1beta1
+kind: ZookeeperCluster
+metadata:
+  name: zookeeper-openstack-poc
+spec:
+  
+  k8sClusterRef:
+    name: control-plane-k8s
+    namespace: cpc-system
+  blueprintRef:
+    name: cfk-openstack
+    namespace: cpc-system
+---
+apiVersion: cluster.cpc.platform.confluent.io/v1beta1
+kind: KafkaCluster
+metadata:
+  name: kafka-openstack-poc
+spec:
+  k8sClusterRef:
+    name: control-plane-k8s
+    namespace: cpc-system
+  blueprintRef:
+    name: cfk-openstack
+    namespace: cpc-system
+  externalAccess:
+    kafkaRest:
+      dnsConfig:
+        subdomain: hcp-onprem-kafka-rest
+    listeners:
+      external:
+        dnsConfig:
+          bootstrapSubdomain: hcp-onprem-kafka-bootstrap
+          brokerSubdomain: hcp-onprem-kafka-broker
+
+---
+
+apiVersion: cluster.cpc.platform.confluent.io/v1beta1
+kind: ControlCenterCluster
+metadata:
+  name: controlcenter-openstack-poc
+spec:
+  k8sClusterRef:
+    name: control-plane-k8s
+    namespace: cpc-system
+  blueprintRef:
+    name: cfk-openstack
+    namespace: cpc-system
+  externalAccess:
+    dnsConfig:
+      subdomain: hcp-onprem-kafka-controlcenter
