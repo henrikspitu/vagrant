@@ -1,0 +1,134 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: kafka-cluster-ingress
+---
+
+apiVersion: kafka.strimzi.io/v1
+kind: KafkaNodePool
+metadata:
+  name: dual-role
+  namespace: kafka-cluster-ingress
+  labels:
+    strimzi.io/cluster: kafka-cluster01
+spec:
+  replicas: 3
+  roles:
+    - controller
+    - broker
+  storage:
+    type: jbod
+    volumes:
+      - id: 0
+        type: persistent-claim
+        size: 100Gi
+        deleteClaim: true
+        kraftMetadata: shared
+---
+apiVersion: kafka.strimzi.io/v1
+kind: Kafka
+metadata:
+  name: kafka-cluster01
+  namespace: kafka-cluster-ingress
+spec:
+  kafka:
+    # keep these aligned with your Strimzi version/examples if you change them
+    version: 4.1.1
+    metadataVersion: 4.1-IV1
+    listeners:
+      - name: plain
+        port: 9092
+        type: internal
+        tls: false
+      - name: tls
+        port: 9093
+        type: internal
+        tls: true
+      - name: external
+        port: 9094
+        type: cluster-ip
+        tls: true
+        configuration:
+          # Put the bootstrap DNS name into cert SANs (handy for hostname verification)
+          bootstrap:
+            alternativeNames:
+              - bootstrap.kafkaingress.sharks4it.dk
+
+          # Broker addresses that clients will receive from bootstrap
+          advertisedHostTemplate: broker-{nodeId}.kafkaingress.sharks4it.dk
+    config:
+      offsets.topic.replication.factor: 3
+      transaction.state.log.replication.factor: 3
+      transaction.state.log.min.isr: 2
+      default.replication.factor: 3
+      min.insync.replicas: 2
+  entityOperator:
+    topicOperator: {}
+    userOperator: {}
+
+---
+
+apiVersion: traefik.io/v1alpha1
+kind: IngressRouteTCP
+metadata:
+  name: kafka-bootstrap
+  namespace: kafka-cluster-ingress
+spec:
+  entryPoints:
+    - kafka
+  routes:
+    - match: HostSNI(`bootstrap.kafkaingress.sharks4it.dk`)
+      services:
+        - name: kafka-cluster01-kafka-external-bootstrap
+          port: 9094
+  tls:
+    passthrough: true
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRouteTCP
+metadata:
+  name: kafka-broker-0
+  namespace: kafka-cluster-ingress
+spec:
+  entryPoints:
+    - kafka
+  routes:
+    - match: HostSNI(`broker-0.kafkaingress.sharks4it.dk`)
+      services:
+        - name: kafka-cluster01-kafka-external-0
+          port: 9094
+  tls:
+    passthrough: true
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRouteTCP
+metadata:
+  name: kafka-broker-1
+  namespace: kafka-cluster-ingress
+spec:
+  entryPoints:
+    - kafka
+  routes:
+    - match: HostSNI(`broker-1.kafkaingress.sharks4it.dk`)
+      services:
+        - name: kafka-cluster01-kafka-external-1
+          port: 9094
+  tls:
+    passthrough: true
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRouteTCP
+metadata:
+  name: kafka-broker-2
+  namespace: kafka-cluster-ingress
+spec:
+  entryPoints:
+    - kafka
+  routes:
+    - match: HostSNI(`broker-2.kafkaingress.sharks4it.dk`)
+      services:
+        - name: kafka-cluster01-kafka-external-2
+          port: 9094
+  tls:
+    passthrough: true
+

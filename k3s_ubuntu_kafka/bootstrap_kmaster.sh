@@ -2,10 +2,11 @@
 
 
 MASTER_IP="$1"
+NETWORK_INTERFACE="$2"
 
 echo "[Master TASK 1] Install k3s and create cluster"
 echo "setup master using IP $MASTER_IP"
-curl -sfL https://get.k3s.io | sudo sh -s - server --node-ip="${MASTER_IP}" --advertise-address="${MASTER_IP}" --write-kubeconfig-mode=644
+curl -sfL https://get.k3s.io | sudo sh -s - server --node-ip="${MASTER_IP}" --advertise-address="${MASTER_IP}" --flannel-iface="${NETWORK_INTERFACE}" --write-kubeconfig-mode=644
 
 
 echo "[Master TASK 2] verify installation"
@@ -28,7 +29,7 @@ echo "[Master TASK 5] copy kube config to hspo"
 sudo mkdir /home/hspo/.kube
 sudo cp /etc/rancher/k3s/k3s.yaml /home/hspo/.kube/config
 sudo chown -R hspo:hspo /home/hspo/.kube
-sudo chmod 600 /home/hspo/.kube
+sudo chmod 700 /home/hspo/.kube
 
 # sudo lsmod | grep br_netfilter
 # sudo systemctl enable kubelet

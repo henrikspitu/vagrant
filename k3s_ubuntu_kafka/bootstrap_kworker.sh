@@ -16,7 +16,7 @@ JOIN_TOKEN="$(tr -d '\r' < "${TOKEN_FILE}")"
 echo "[Worker TASK 1] Setup Worker Node"
 echo "[Worker TASK 1] MASTER_IP: $MASTER_IP  WORKER_IP: $WORKER_IP JOIN_TOKEN : $JOIN_TOKEN NETWORK_INTERFACE: $NETWORK_INTERFACE"
 
-curl -sfL https://get.k3s.io | sudo K3S_URL="https://${MASTER_IP}:6443" K3S_TOKEN="${JOIN_TOKEN}" INSTALL_K3S_EXEC="agent --node-ip=${WORKER_IP} --node-external-ip=${WORKER_IP} --flannel-iface=${NETWORK_INTERFACE}" sh -
+curl -sfL https://get.k3s.io | sudo K3S_URL="https://${MASTER_IP}:6443" K3S_TOKEN="${JOIN_TOKEN}" INSTALL_K3S_EXEC="agent --node-ip=${WORKER_IP} --flannel-iface=${NETWORK_INTERFACE}" sh -
 
 
 # curl -sfL https://get.k3s.io | sudo \

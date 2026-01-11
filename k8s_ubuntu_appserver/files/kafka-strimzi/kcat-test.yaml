@@ -1,0 +1,26 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: kcat-test
+  namespace: kafka-cluster-ingress
+spec:
+  restartPolicy: Never
+  hostAliases:
+  - ip: "192.168.1.150"
+    hostnames:
+    - "bootstrap.kafkaingress.sharks4it.dk"
+    - "broker-0.kafkaingress.sharks4it.dk"
+    - "broker-1.kafkaingress.sharks4it.dk"
+    - "broker-2.kafkaingress.sharks4it.dk"
+  volumes:
+  - name: ca
+    secret:
+      secretName: kafka-cluster01-cluster-ca-cert
+  containers:
+  - name: kcat
+    image: edenhill/kcat:1.7.1
+    command: ["sleep","3600"]
+    volumeMounts:
+    - name: ca
+      mountPath: /ca
+      readOnly: true
